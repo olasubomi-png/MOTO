@@ -3,10 +3,13 @@ import { getFeaturedVehicles, getRecentVehicles, getAvailableBodyTypes } from "@
 import { VehicleCard } from "@/components/VehicleCard";
 import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 
-export default function HomePage() {
-  const featured = getFeaturedVehicles();
-  const recent = getRecentVehicles(4);
-  const bodyTypes = getAvailableBodyTypes();
+export const dynamic = "force-dynamic";
+
+
+export default async function HomePage() {
+  const featured = await getFeaturedVehicles();
+  const recent = await getRecentVehicles(4);
+  const bodyTypes = await getAvailableBodyTypes();
   const whatsappHref = buildWhatsAppUrl(
     "Hello Tosin Signature Motors, I'm interested in your vehicles."
   );

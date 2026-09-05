@@ -7,10 +7,14 @@ import {
   formatPrice,
   formatMileage,
 } from "@/lib/vehicles-public";
+
 import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 import { VehicleGallery } from "@/components/VehicleGallery";
 import { VehicleCard } from "@/components/VehicleCard";
 import { ShareButton } from "@/components/ShareButton";
+
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -18,7 +22,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const vehicle = getVehicleById(id);
+  const vehicle = await getVehicleById(id);
 
   if (!vehicle) {
     return {
@@ -87,13 +91,13 @@ function buildInquiryMessage(
 
 export default async function VehicleDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const vehicle = getVehicleById(id);
+  const vehicle = await getVehicleById(id);
 
   if (!vehicle) {
     notFound();
   }
 
-  const related = getRelatedVehicles(vehicle, 4);
+  const related = await getRelatedVehicles(vehicle, 4);
   const isAvailable = vehicle.availability === "available";
   const isReserved = vehicle.availability === "reserved";
   const isSold = vehicle.availability === "sold";

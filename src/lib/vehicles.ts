@@ -1,7 +1,6 @@
 /**
- * Compatibility re-export of the public read-only inventory API.
- * Prefer "@/lib/vehicles-public" or "@/lib/vehicle-images".
- * Filesystem mutations: "@/lib/vehicles-repo" (VPS/Admin only).
+ * Public inventory surface for Server Components.
+ * Admin mutations are exported from the same repository.
  */
 export {
   getAllVehicles,
@@ -13,12 +12,20 @@ export {
   searchVehicles,
   getRelatedVehicles,
   isSampleInventory,
+  getStats,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+  upsertVehicle,
+  type Vehicle,
+  type VehicleFilters,
+} from "./vehicle-repository.ts";
+
+export {
   filterAndSortVehicles,
   pickRelatedVehicles,
   formatPrice,
   formatMileage,
-  getVehicleImage,
-  PLACEHOLDER_IMAGE,
-  type Vehicle,
-  type VehicleFilters,
-} from "./vehicles-public.ts";
+} from "./vehicle-query.ts";
+
+export { getVehicleImage, PLACEHOLDER_IMAGE } from "./vehicle-images.ts";

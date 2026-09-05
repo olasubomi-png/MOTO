@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/config";
 import { getAllVehicles } from "@/lib/vehicles-public";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): MetadataRoute.Sitemap {
   const base = siteConfig.siteUrl.replace(/\/$/, "");
   // Without a configured public origin, emit relative-safe empty absolute URLs
   // only when siteUrl is set — avoids inventing a domain.
@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const vehicles = getAllVehicles().filter(
+  const vehicles = (await getAllVehicles()).filter(
     (v) => v.availability === "available" || v.availability === "reserved"
   );
 

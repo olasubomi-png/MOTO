@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import {
+
   searchVehicles,
   getAvailableMakes,
   getAvailableBodyTypes,
@@ -9,6 +10,9 @@ import { VehicleCard } from "@/components/VehicleCard";
 import { InventoryFilters } from "@/components/InventoryFilters";
 
 
+
+
+export const dynamic = "force-dynamic";
 
 interface SearchParams {
   q?: string;
@@ -23,11 +27,15 @@ interface SearchParams {
   yearMax?: string;
 }
 
+
+
 export const metadata = {
   title: "Inventory",
   description:
     "Browse our current selection of premium vehicles at Tosin Signature Motors. Driven by Trust. Built for You.",
 };
+
+
 
 
 export default async function InventoryPage({
@@ -37,7 +45,7 @@ export default async function InventoryPage({
 }) {
   const params = await searchParams;
 
-  const vehicles = searchVehicles({
+  const vehicles = await searchVehicles({
     q: params.q,
     make: params.make,
     bodyType: params.bodyType,
@@ -51,9 +59,9 @@ export default async function InventoryPage({
     yearMax: params.yearMax ? Number(params.yearMax) : undefined,
   });
 
-  const makes = getAvailableMakes();
-  const bodyTypes = getAvailableBodyTypes();
-  const sample = isSampleInventory();
+  const makes = await getAvailableMakes();
+  const bodyTypes = await getAvailableBodyTypes();
+  const sample = await isSampleInventory();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
