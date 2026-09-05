@@ -28,7 +28,12 @@ export const vehicles = pgTable(
     make: text("make").notNull(),
     model: text("model").notNull(),
     year: integer("year").notNull(),
-    /** Major currency units as integer (never float) */
+    /**
+     * Price as integer in MAJOR currency units (never float).
+     * Example: 145000 + currency "USD" means USD 145,000 whole dollars.
+     * Example: 85000000 + currency "NGN" means NGN 85,000,000 whole naira.
+     * Do not store minor units (cents/kobo) in this column without a schema migration.
+     */
     price: integer("price").notNull(),
     currency: text("currency").notNull().default("USD"),
     mileage: integer("mileage").notNull().default(0),

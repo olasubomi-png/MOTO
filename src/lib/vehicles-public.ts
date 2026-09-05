@@ -1,7 +1,6 @@
 /**
- * Public inventory API for the Next.js site.
- * Backed by Neon PostgreSQL via the vehicle repository.
- * Async — call from Server Components / route handlers only.
+ * Public inventory API for Server Components.
+ * Re-exports the Neon-backed repository (server-only).
  */
 export {
   getAllVehicles,
@@ -16,13 +15,13 @@ export {
   getStats,
   type Vehicle,
   type VehicleFilters,
-} from "./vehicle-repository.ts";
+} from "./vehicle-repository";
 
 export {
   filterAndSortVehicles,
   pickRelatedVehicles,
   formatPrice,
   formatMileage,
-} from "./vehicle-query.ts";
+} from "./vehicle-query";
 
-export { getVehicleImage, PLACEHOLDER_IMAGE } from "./vehicle-images.ts";
+export { getVehicleImage, PLACEHOLDER_IMAGE } from "./vehicle-images";

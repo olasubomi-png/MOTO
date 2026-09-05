@@ -1,8 +1,10 @@
 /**
  * Neon/PostgreSQL vehicle repository.
- * Server-only — never import from Client Components.
+ * Must never be imported from Client Components.
  */
-import { and, asc, desc, eq, gte, lte, ne, or, sql, type SQL } from "drizzle-orm";
+import "server-only";
+
+import { and, desc, eq, gte, lte, ne, or, type SQL } from "drizzle-orm";
 import { getDb, vehicles } from "../db/index.ts";
 import type { Vehicle } from "./vehicle-types.ts";
 import type { VehicleFilters } from "./vehicle-query.ts";
@@ -14,6 +16,15 @@ import { validateVehicle } from "./vehicle-validation.ts";
 import { rowToVehicle, vehicleToRow } from "./vehicle-mapper.ts";
 
 export type { Vehicle, VehicleFilters };
+
+/** Thrown when an update loses an optimistic concurrency race */
+export class InventoryConflictError extends Error {
+  readonly code = "INVENTORY_CONFLICT" as const;
+  constructor(message = "Vehicle was modified by another session. Reload and try again.") {
+    super(message);
+    this.name = "InventoryConflictError";
+  }
+}
 
 function publicAvailabilityClause() {
   return or(
@@ -78,10 +89,6 @@ export async function getAvailableBodyTypes(): Promise<string[]> {
   return Array.from(new Set(all.map((v) => v.bodyType))).sort();
 }
 
-/**
- * Search with SQL-side filters where practical; final sort/filter via pure helpers
- * for deterministic parity with existing behaviour.
- */
 export async function searchVehicles(
   filters: VehicleFilters
 ): Promise<Vehicle[]> {
@@ -92,7 +99,11 @@ export async function searchVehicles(
     conditions.push(
       eq(
         vehicles.availability,
-        filters.availability as "available" | "reserved" | "sold" | "unpublished"
+        filters.availability as
+          | "available"
+          | "reserved"
+          | "sold"
+          | "unpublished"
       )
     );
   } else {
@@ -128,9 +139,6 @@ export async function searchVehicles(
     : await db.select().from(vehicles);
 
   const mapped = rows.map(rowToVehicle);
-  // Text search + deterministic sort in pure layer.
-  // Pass through availability only when explicitly requested; otherwise the
-  // pure helper keeps available|reserved (SQL already narrowed the set).
   return filterAndSortVehicles(mapped, {
     q: filters.q,
     model: filters.model,
@@ -138,7 +146,6 @@ export async function searchVehicles(
     availability: filters.availability,
   });
 }
-
 
 export async function getRelatedVehicles(
   vehicle: Vehicle,
@@ -166,7 +173,7 @@ export async function getStats() {
   };
 }
 
-/* -------------------- Mutations (Admin / VPS) -------------------- */
+/* -------------------- Mutations (Admin) -------------------- */
 
 export async function createVehicle(
   data: Omit<Vehicle, "id" | "createdAt" | "updatedAt"> & { id?: string }
@@ -196,20 +203,27 @@ export async function createVehicle(
   return created;
 }
 
+/**
+ * Update with optimistic concurrency on updatedAt.
+ * If another admin changed the row since `existing` was loaded, throws InventoryConflictError.
+ */
 export async function updateVehicle(
   id: string,
-  data: Partial<Vehicle>
+  data: Partial<Vehicle>,
+  opts?: { expectedUpdatedAt?: string }
 ): Promise<Vehicle | null> {
   const db = getDb();
   const existing = await getVehicleById(id);
   if (!existing) return null;
 
+  const expected =
+    opts?.expectedUpdatedAt ?? data.updatedAt ?? existing.updatedAt;
+
   const next: Vehicle = {
     ...existing,
     ...data,
     id,
-    price:
-      data.price !== undefined ? Math.round(data.price) : existing.price,
+    price: data.price !== undefined ? Math.round(data.price) : existing.price,
     mileage:
       data.mileage !== undefined ? Math.round(data.mileage) : existing.mileage,
     updatedAt: new Date().toISOString(),
@@ -220,7 +234,9 @@ export async function updateVehicle(
   }
 
   const row = vehicleToRow(next);
-  await db
+  const expectedDate = new Date(expected);
+
+  const result = await db
     .update(vehicles)
     .set({
       make: row.make,
@@ -244,21 +260,31 @@ export async function updateVehicle(
       images: row.images,
       updatedAt: row.updatedAt,
     })
-    .where(eq(vehicles.id, id));
+    .where(and(eq(vehicles.id, id), eq(vehicles.updatedAt, expectedDate)))
+    .returning({ id: vehicles.id });
+
+  if (!result.length) {
+    // Distinguish missing vs conflict
+    const stillThere = await getVehicleById(id);
+    if (!stillThere) return null;
+    throw new InventoryConflictError();
+  }
 
   return getVehicleById(id);
 }
 
 export async function deleteVehicle(id: string): Promise<boolean> {
   const db = getDb();
-  const existing = await getVehicleById(id);
-  if (!existing) return false;
-  await db.delete(vehicles).where(eq(vehicles.id, id));
-  return true;
+  const result = await db
+    .delete(vehicles)
+    .where(eq(vehicles.id, id))
+    .returning({ id: vehicles.id });
+  return result.length > 0;
 }
 
 /**
- * Idempotent upsert by primary key — used by seed and admin import.
+ * Idempotent upsert by primary key — seed and admin import.
+ * Does not delete other vehicles.
  */
 export async function upsertVehicle(vehicle: Vehicle): Promise<Vehicle> {
   const issues = validateVehicle(vehicle);

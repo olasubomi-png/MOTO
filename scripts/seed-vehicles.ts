@@ -1,8 +1,8 @@
 /**
  * Idempotent seed: upsert vehicles from data/vehicles.json into Neon.
+ * Does NOT delete existing vehicles that are absent from JSON.
  *
- * Usage:
- *   DATABASE_URL=... npx tsx scripts/seed-vehicles.ts
+ * Usage: DATABASE_URL=... npm run db:seed
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
@@ -10,9 +10,9 @@ config();
 
 import { readFileSync } from "fs";
 import path from "path";
-import { upsertVehicle } from "../src/lib/vehicle-repository.ts";
-import type { Vehicle } from "../src/lib/vehicle-types.ts";
-import { validateVehicle } from "../src/lib/vehicle-validation.ts";
+import { upsertVehicle } from "../src/lib/vehicle-repository";
+import type { Vehicle } from "../src/lib/vehicle-types";
+import { validateVehicle } from "../src/lib/vehicle-validation";
 
 async function main() {
   if (!process.env.DATABASE_URL) {
@@ -32,13 +32,18 @@ async function main() {
   for (const item of raw) {
     const issues = validateVehicle(item);
     if (issues.length > 0) {
-      console.warn("Skip invalid record:", issues);
+      console.warn(
+        "Skip invalid record:",
+        issues.map((i) => `${i.field}: ${i.message}`).join("; ")
+      );
       skipped += 1;
       continue;
     }
     const vehicle = item as Vehicle;
     await upsertVehicle(vehicle);
-    console.log(`Upserted ${vehicle.id} — ${vehicle.year} ${vehicle.make} ${vehicle.model}`);
+    console.log(
+      `Upserted ${vehicle.id} — ${vehicle.year} ${vehicle.make} ${vehicle.model}`
+    );
     ok += 1;
   }
 

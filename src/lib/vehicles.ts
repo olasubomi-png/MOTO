@@ -1,6 +1,5 @@
 /**
- * Public inventory surface for Server Components.
- * Admin mutations are exported from the same repository.
+ * Inventory API surface for Server Components / Admin.
  */
 export {
   getAllVehicles,
@@ -17,15 +16,16 @@ export {
   updateVehicle,
   deleteVehicle,
   upsertVehicle,
+  InventoryConflictError,
   type Vehicle,
   type VehicleFilters,
-} from "./vehicle-repository.ts";
+} from "./vehicle-repository";
 
 export {
   filterAndSortVehicles,
   pickRelatedVehicles,
   formatPrice,
   formatMileage,
-} from "./vehicle-query.ts";
+} from "./vehicle-query";
 
-export { getVehicleImage, PLACEHOLDER_IMAGE } from "./vehicle-images.ts";
+export { getVehicleImage, PLACEHOLDER_IMAGE } from "./vehicle-images";

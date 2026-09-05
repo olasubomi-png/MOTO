@@ -154,3 +154,37 @@ describe("formatters", () => {
     assert.match(formatMileage(12500), /12,500 km|12500 km/);
   });
 });
+
+describe("vehicle-mapper pure shape", () => {
+  it("rowToVehicle produces ISO date strings", async () => {
+    const { rowToVehicle } = await import("../vehicle-mapper.ts");
+    const row = {
+      id: "1",
+      make: "BMW",
+      model: "X7",
+      year: 2024,
+      price: 100000,
+      currency: "USD",
+      mileage: 1000,
+      fuel: "Petrol",
+      transmission: "Automatic",
+      engine: "3.0L",
+      bodyType: "SUV",
+      exteriorColor: "Black",
+      interiorColor: "Black",
+      condition: "Excellent",
+      description: "Test",
+      features: ["A"],
+      location: "Lagos",
+      availability: "available" as const,
+      featured: false,
+      images: [] as string[],
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-01-02T00:00:00.000Z"),
+    };
+    const v = rowToVehicle(row);
+    assert.equal(v.createdAt, "2026-01-01T00:00:00.000Z");
+    assert.equal(v.updatedAt, "2026-01-02T00:00:00.000Z");
+    assert.equal(v.price, 100000);
+  });
+});
