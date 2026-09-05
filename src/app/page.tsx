@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { getFeaturedVehicles, getRecentVehicles, getAvailableBodyTypes } from "@/lib/vehicles";
 import { VehicleCard } from "@/components/VehicleCard";
+import { buildWhatsAppUrl } from "@/lib/config";
 
 export default function HomePage() {
   const featured = getFeaturedVehicles();
   const recent = getRecentVehicles(4);
   const bodyTypes = getAvailableBodyTypes();
+  const whatsappHref = buildWhatsAppUrl(
+    "Hello Signature Motors, I'm interested in your vehicles."
+  );
+
 
   return (
     <>
@@ -204,7 +209,7 @@ export default function HomePage() {
               Explore Inventory
             </Link>
             <a
-              href="https://wa.me/2348000000000?text=Hello%20Signature%20Motors%2C%20I%27m%20interested%20in%20your%20vehicles."
+              href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-border px-8 py-3.5 text-base font-semibold hover:border-gold hover:text-gold transition-colors"

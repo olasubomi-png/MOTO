@@ -3,9 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { buildWhatsAppUrl } from "@/lib/config";
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const whatsappHref = buildWhatsAppUrl();
+
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -53,7 +56,7 @@ export function Header() {
         {/* CTAs */}
         <div className="hidden md:flex items-center gap-3">
           <a
-            href="https://wa.me/2348000000000"
+            href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-gold hover:text-gold transition-colors"
@@ -122,7 +125,7 @@ export function Header() {
             </Link>
             <div className="mt-3 flex flex-col gap-2">
               <a
-                href="https://wa.me/2348000000000"
+                href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium"

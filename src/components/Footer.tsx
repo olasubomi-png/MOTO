@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
+import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 
 export function Footer() {
   return (
+
     <footer className="border-t border-border bg-muted/50">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
@@ -67,7 +69,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://wa.me/2348000000000"
+                  href={buildWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-gold transition-colors"
@@ -86,20 +88,21 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li>Lagos, Nigeria</li>
               <li>
-                <a href="tel:+2348000000000" className="hover:text-gold transition-colors">
-                  +234 800 000 0000
+                <a href={`tel:${siteConfig.phone}`} className="hover:text-gold transition-colors">
+                  {siteConfig.phone}
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:hello@signaturemotors.com"
+                  href={`mailto:${siteConfig.email}`}
                   className="hover:text-gold transition-colors"
                 >
-                  hello@signaturemotors.com
+                  {siteConfig.email}
                 </a>
               </li>
             </ul>
           </div>
+
         </div>
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">

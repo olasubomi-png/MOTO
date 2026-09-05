@@ -5,13 +5,23 @@ import { useState } from "react";
 interface ShareButtonProps {
   title: string;
   text: string;
-  url: string;
+  /** Relative path e.g. /inventory/1 — full URL is resolved in the browser */
+  path: string;
 }
 
-export function ShareButton({ title, text, url }: ShareButtonProps) {
+export function ShareButton({ title, text, path }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
+  const getUrl = () => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}${path.startsWith("/") ? path : `/${path}`}`;
+    }
+    return path;
+  };
+
   const handleShare = async () => {
+    const url = getUrl();
+
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({ title, text, url });
@@ -26,7 +36,6 @@ export function ShareButton({ title, text, url }: ShareButtonProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const input = document.createElement("input");
       input.value = url;
       document.body.appendChild(input);
@@ -47,14 +56,14 @@ export function ShareButton({ title, text, url }: ShareButtonProps) {
     >
       {copied ? (
         <>
-          <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           Link copied
         </>
       ) : (
         <>
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
