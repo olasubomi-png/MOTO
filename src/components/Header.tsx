@@ -3,11 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { buildWhatsAppUrl } from "@/lib/config";
+import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const whatsappHref = buildWhatsAppUrl();
+
 
 
   return (
@@ -124,23 +125,30 @@ export function Header() {
               Contact
             </Link>
             <div className="mt-3 flex flex-col gap-2">
+              <Link
+                href="/inventory"
+                onClick={() => setMobileOpen(false)}
+                className="inline-flex items-center justify-center rounded-full bg-gold px-4 py-3 text-sm font-semibold text-black min-h-[48px]"
+              >
+                Explore Inventory
+              </Link>
               <a
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-semibold text-white min-h-[48px]"
               >
                 <WhatsAppIcon className="h-4 w-4" />
                 WhatsApp
               </a>
-              <Link
-                href="/inventory"
-                onClick={() => setMobileOpen(false)}
-                className="inline-flex items-center justify-center rounded-full bg-gold px-4 py-2.5 text-sm font-semibold text-black"
+              <a
+                href={`tel:${siteConfig.phone}`}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm font-medium min-h-[48px]"
               >
-                Explore Inventory
-              </Link>
+                Call {siteConfig.phoneDisplay}
+              </a>
             </div>
+
           </nav>
         </div>
       )}
