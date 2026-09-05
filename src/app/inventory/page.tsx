@@ -17,8 +17,10 @@ interface SearchParams {
 
 export const metadata = {
   title: "Inventory",
-  description: "Browse our current selection of premium vehicles at Signature Motors.",
+  description:
+    "Browse our current selection of premium vehicles at Tosin Signature Motors. Driven by Trust. Built for You.",
 };
+
 
 export default async function InventoryPage({
   searchParams,

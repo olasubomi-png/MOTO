@@ -1,27 +1,55 @@
 /**
- * Centralized site configuration.
- * Prefer environment variables in production.
- * Fallbacks are safe development placeholders only.
+ * Centralized configuration for Tosin Signature Motors / MOTOR platform.
+ * Environment variables override defaults for deployment-specific values only.
  */
 
-const DEFAULT_WHATSAPP = "2348000000000"; // replace via NEXT_PUBLIC_WHATSAPP_NUMBER
-const DEFAULT_PHONE = "+2348000000000";
-const DEFAULT_EMAIL = "hello@signaturemotors.com";
-
 export const siteConfig = {
-  /** WhatsApp number without + or spaces (e.g. 2348012345678) */
+  /** Official business name */
+  businessName: "Tosin Signature Motors",
+
+  /** Short brand name used in compact contexts */
+  brandShort: "Tosin Signature Motors",
+
+  /** Platform / product name */
+  platformName: "MOTOR",
+
+  /** Official tagline */
+  tagline: "Driven by Trust. Built for You.",
+
+  /** WhatsApp display number (as shown to customers) */
+  whatsappDisplay: "08051890334",
+
+  /** WhatsApp number for wa.me links (country code, no + or spaces) */
   whatsappNumber:
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/[\s+]/g, "") ||
-    DEFAULT_WHATSAPP,
+    "2348051890334",
 
-  /** Display / tel: phone number */
-  phone: process.env.NEXT_PUBLIC_PHONE_NUMBER || DEFAULT_PHONE,
+  /** Phone display number */
+  phoneDisplay: "08070627688",
 
-  /** Public contact email */
-  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || DEFAULT_EMAIL,
+  /** Phone for tel: links */
+  phone: process.env.NEXT_PUBLIC_PHONE_NUMBER || "+2348070627688",
 
-  /** Optional public site URL for server-side metadata (canonical, OG absolute URLs) */
+  /** Contact email (optional override) */
+  email:
+    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@tosinsignaturemotors.com",
+
+  /** Official WhatsApp Channel */
+  whatsappChannel:
+    "https://whatsapp.com/channel/0029Vb8pqKL6BIEdGOcnTN25",
+
+  /** Official TikTok */
+  tiktok: "https://www.tiktok.com/@tosin_signature_motors",
+
+  /** Optional public site origin for canonical / absolute OG URLs */
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "",
+
+  /** Client-supplied marketing copy */
+  marketingCopy: {
+    headline: "New mentally, new opportunities, and new rides!",
+    body: "Tosin Signature Motors delivers premium, clean & quality cars at great deals. Looking for your dream cars? Let’s make it happen.",
+    closing: "Tosin Signature Motors — Driven by Trust. Built for You.",
+  },
 } as const;
 
 /** Build a WhatsApp deep-link with optional pre-filled message */

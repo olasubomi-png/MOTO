@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { siteConfig } from "@/lib/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,29 +17,31 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Signature Motors | MOTOR — Driven by Trust. Built for You.",
-    template: "%s | Signature Motors",
+    default: `${siteConfig.businessName} | ${siteConfig.platformName} — ${siteConfig.tagline}`,
+    template: `%s | ${siteConfig.businessName}`,
   },
-  description:
-    "Signature Motors is a premium automotive dealership. Discover luxury and performance vehicles carefully selected and prepared for you. Driven by trust. Built for you.",
+  description: `${siteConfig.businessName} delivers premium, clean & quality cars at great deals. ${siteConfig.tagline}`,
   keywords: [
+    "Tosin Signature Motors",
     "Signature Motors",
-    "luxury cars",
+    "luxury cars Nigeria",
     "premium vehicles",
-    "car dealership",
+    "car dealership Lagos",
     "Mercedes",
     "BMW",
     "Range Rover",
     "Lexus",
-    "Nigeria cars",
+    "buy cars Nigeria",
   ],
   openGraph: {
     type: "website",
-    locale: "en_US",
-    siteName: "Signature Motors",
-    title: "Signature Motors | MOTOR",
-    description: "Driven by Trust. Built for You.",
-    images: [{ url: "/logo.jpg", width: 1200, height: 630, alt: "Signature Motors" }],
+    locale: "en_NG",
+    siteName: siteConfig.businessName,
+    title: `${siteConfig.businessName} | ${siteConfig.platformName}`,
+    description: siteConfig.tagline,
+    images: [
+      { url: "/logo.jpg", width: 1200, height: 630, alt: siteConfig.businessName },
+    ],
   },
   robots: {
     index: true,

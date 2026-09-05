@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { getFeaturedVehicles, getRecentVehicles, getAvailableBodyTypes } from "@/lib/vehicles";
 import { VehicleCard } from "@/components/VehicleCard";
-import { buildWhatsAppUrl } from "@/lib/config";
+import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 
 export default function HomePage() {
   const featured = getFeaturedVehicles();
   const recent = getRecentVehicles(4);
   const bodyTypes = getAvailableBodyTypes();
   const whatsappHref = buildWhatsAppUrl(
-    "Hello Signature Motors, I'm interested in your vehicles."
+    "Hello Tosin Signature Motors, I'm interested in your vehicles."
   );
-
 
   return (
     <>
@@ -22,7 +21,7 @@ export default function HomePage() {
         <div className="relative mx-auto max-w-7xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:px-8 lg:pt-32">
           <div className="max-w-3xl">
             <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-gold">
-              Signature Motors
+              {siteConfig.businessName}
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Exceptional vehicles.
@@ -30,9 +29,9 @@ export default function HomePage() {
               <span className="text-gold">Uncompromising trust.</span>
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground max-w-xl">
-              Discover a carefully curated selection of premium automobiles.
-              Every vehicle is inspected, prepared, and presented with integrity.
+              {siteConfig.marketingCopy.body}
             </p>
+
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href="/inventory"
@@ -145,11 +144,12 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-sm font-semibold uppercase tracking-wider text-gold mb-2">
-              The Signature difference
+              The Tosin Signature difference
             </p>
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Why choose Signature Motors
+              Why choose {siteConfig.businessName}
             </h2>
+
           </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             <div className="rounded-2xl border border-border bg-card p-8">

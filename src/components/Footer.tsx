@@ -4,7 +4,6 @@ import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 
 export function Footer() {
   return (
-
     <footer className="border-t border-border bg-muted/50">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
@@ -12,13 +11,16 @@ export function Footer() {
           <div className="md:col-span-1">
             <Image
               src="/logo.jpg"
-              alt="Signature Motors"
+              alt={siteConfig.businessName}
               width={160}
               height={54}
               className="h-12 w-auto object-contain mb-4"
             />
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Premium vehicles. Trusted service. Driven by trust. Built for you.
+              {siteConfig.marketingCopy.body}
+            </p>
+            <p className="mt-3 text-xs font-medium tracking-wide text-gold">
+              {siteConfig.tagline}
             </p>
           </div>
 
@@ -59,7 +61,7 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li>
                 <Link href="/#why-us" className="hover:text-gold transition-colors">
-                  Why Signature Motors
+                  Why {siteConfig.businessName}
                 </Link>
               </li>
               <li>
@@ -77,6 +79,26 @@ export function Footer() {
                   WhatsApp
                 </a>
               </li>
+              <li>
+                <a
+                  href={siteConfig.whatsappChannel}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gold transition-colors"
+                >
+                  WhatsApp Channel
+                </a>
+              </li>
+              <li>
+                <a
+                  href={siteConfig.tiktok}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gold transition-colors"
+                >
+                  TikTok
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -88,29 +110,33 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li>Lagos, Nigeria</li>
               <li>
-                <a href={`tel:${siteConfig.phone}`} className="hover:text-gold transition-colors">
-                  {siteConfig.phone}
+                <a
+                  href={`tel:${siteConfig.phone}`}
+                  className="hover:text-gold transition-colors"
+                >
+                  Call {siteConfig.phoneDisplay}
                 </a>
               </li>
               <li>
                 <a
-                  href={`mailto:${siteConfig.email}`}
+                  href={buildWhatsAppUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hover:text-gold transition-colors"
                 >
-                  {siteConfig.email}
+                  WhatsApp {siteConfig.whatsappDisplay}
                 </a>
               </li>
             </ul>
           </div>
-
         </div>
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Signature Motors. All rights reserved.
+            © {new Date().getFullYear()} {siteConfig.businessName}. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground tracking-wide">
-            DRIVEN BY TRUST. BUILT FOR YOU.
+          <p className="text-xs text-muted-foreground tracking-wide uppercase">
+            {siteConfig.tagline}
           </p>
         </div>
       </div>

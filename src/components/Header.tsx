@@ -17,7 +17,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <Image
             src="/logo.jpg"
-            alt="Signature Motors"
+            alt="Tosin Signature Motors"
             width={140}
             height={48}
             className="h-10 w-auto object-contain"

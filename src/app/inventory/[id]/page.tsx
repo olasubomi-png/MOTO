@@ -30,28 +30,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
   const description =
     vehicle.description?.slice(0, 155) ||
-    `${title} at Signature Motors. ${formatPrice(vehicle.price, vehicle.currency)}. ${vehicle.mileage.toLocaleString()} km.`;
+    `${title} at ${siteConfig.businessName}. ${formatPrice(vehicle.price, vehicle.currency)}. ${vehicle.mileage.toLocaleString()} km.`;
 
   const ogImage = vehicle.images?.[0]
     ? { url: vehicle.images[0], alt: title }
-    : { url: "/logo.jpg", alt: "Signature Motors" };
+    : { url: "/logo.jpg", alt: siteConfig.businessName };
 
   const metadata: Metadata = {
     title,
     description,
     openGraph: {
-      title: `${title} | Signature Motors`,
+      title: `${title} | ${siteConfig.businessName}`,
       description,
       type: "website",
-      siteName: "Signature Motors",
+      siteName: siteConfig.businessName,
       images: [ogImage],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} | Signature Motors`,
+      title: `${title} | ${siteConfig.businessName}`,
       description,
     },
   };
+
 
   // Canonical only when a real site URL is configured
   if (siteConfig.siteUrl) {
@@ -70,15 +71,19 @@ function buildInquiryMessage(
     year: number;
     make: string;
     model: string;
+    price: number;
+    currency: string;
     availability: string;
   }
 ): string {
   const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+  const price = formatPrice(vehicle.price, vehicle.currency);
   if (vehicle.availability === "reserved") {
-    return `Hello Signature Motors, I'm interested in the ${name} (ID: ${vehicle.id}) which is currently marked as reserved. Please let me know if it becomes available or if you have similar vehicles.`;
+    return `Hello Tosin Signature Motors, I'm interested in the ${name} (${price}, ID: ${vehicle.id}) which is currently marked as reserved. Please let me know if it becomes available or if you have similar vehicles.`;
   }
-  return `Hello Signature Motors, I'm interested in the ${name} listed on your website (ID: ${vehicle.id}). Is it still available?`;
+  return `Hello Tosin Signature Motors, I'm interested in the ${name} (${price}, ID: ${vehicle.id}). Is it still available?`;
 }
+
 
 export default async function VehicleDetailPage({ params }: PageProps) {
   const { id } = await params;
@@ -96,7 +101,8 @@ export default async function VehicleDetailPage({ params }: PageProps) {
   const whatsappUrl = buildWhatsAppUrl(buildInquiryMessage(vehicle));
   const sharePath = `/inventory/${vehicle.id}`;
   const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-  const shareText = `Check out this ${shareTitle} at Signature Motors – ${formatPrice(vehicle.price, vehicle.currency)}`;
+  const shareText = `Check out this ${shareTitle} at ${siteConfig.businessName} – ${formatPrice(vehicle.price, vehicle.currency)}`;
+
 
   const specs = [
     { label: "Year", value: String(vehicle.year) },
