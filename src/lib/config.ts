@@ -42,7 +42,11 @@ export const siteConfig = {
   tiktok: "https://www.tiktok.com/@tosin_signature_motors",
 
   /** Optional public site origin for canonical / absolute OG URLs */
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "",
+  /** Production canonical origin — used for metadataBase / OG absolute URLs */
+  productionSiteUrl: "https://tosin-signature-motor.vercel.app",
+  siteUrl:
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://tosin-signature-motor.vercel.app",
 
   /** Client-supplied marketing copy */
   marketingCopy: {

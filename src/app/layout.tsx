@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    siteConfig.siteUrl || "https://tosin-signature-motor.vercel.app"
+  ),
   title: {
     default: `${siteConfig.businessName} | ${siteConfig.platformName} — ${siteConfig.tagline}`,
     template: `%s | ${siteConfig.businessName}`,
@@ -42,6 +45,12 @@ export const metadata: Metadata = {
     images: [
       { url: "/logo.jpg", width: 1200, height: 630, alt: siteConfig.businessName },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteConfig.businessName} | ${siteConfig.platformName}`,
+    description: siteConfig.tagline,
+    images: ["/logo.jpg"],
   },
   robots: {
     index: true,
