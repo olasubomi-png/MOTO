@@ -367,3 +367,166 @@ describe("inventory mutations (locked RMW)", () => {
     assert.equal(raw.length, 1);
   });
 });
+
+describe("lock ownership safety", () => {
+  let tmpDir: string;
+
+  before(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "motor-lock-"));
+  });
+
+  after(() => {
+    __resetInventoryPathsForTests();
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+  });
+
+  beforeEach(() => {
+    const dataFile = path.join(tmpDir, "vehicles.json");
+    const lockFile = path.join(tmpDir, "vehicles.lock");
+    fs.writeFileSync(dataFile, "[]", "utf-8");
+    try {
+      if (fs.existsSync(lockFile)) fs.unlinkSync(lockFile);
+    } catch {
+      /* ignore */
+    }
+    __setInventoryPathsForTests({ dataPath: dataFile, lockPath: lockFile });
+  });
+
+  it("releaseLock only removes own token", async () => {
+    const { __lockTestApi } = await import("../vehicles.ts");
+    const a = __lockTestApi.acquireLock(5000);
+    assert.ok(a);
+    const tokenA = a!.token;
+    // Simulate another process replacing the lock
+    const tokenB = "other-process-token";
+    fs.writeFileSync(__lockTestApi.getLockPath(), tokenB, "utf-8");
+    __lockTestApi.releaseLock(a!);
+    // B's lock must still be present
+    assert.equal(__lockTestApi.readLockToken(), tokenB);
+    // Cleanup as B
+    __lockTestApi.releaseLock({ token: tokenB });
+    assert.equal(__lockTestApi.readLockToken(), null);
+    void tokenA;
+  });
+
+  it("stale recovery does not delete a fresh lock with different token", async () => {
+    const { __lockTestApi } = await import("../vehicles.ts");
+    const staleToken = "stale-owner-token";
+    __lockTestApi.plantLock(staleToken, __lockTestApi.STALE_LOCK_MS + 5_000);
+    // New owner acquires after recovery
+    const fresh = __lockTestApi.acquireLock(5000);
+    assert.ok(fresh);
+    assert.notEqual(fresh!.token, staleToken);
+    assert.equal(__lockTestApi.readLockToken(), fresh!.token);
+    // Old owner tries to release — must not remove fresh lock
+    __lockTestApi.releaseLock({ token: staleToken });
+    assert.equal(__lockTestApi.readLockToken(), fresh!.token);
+    __lockTestApi.releaseLock(fresh!);
+    assert.equal(__lockTestApi.readLockToken(), null);
+  });
+
+  it("failed operation releases only its own lock", async () => {
+    const { __lockTestApi } = await import("../vehicles.ts");
+    assert.throws(() => createVehicle(payload({ make: "" })));
+    assert.equal(isInventoryLocked(), false);
+    assert.equal(__lockTestApi.readLockToken(), null);
+  });
+});
+
+describe("cross-process concurrent creates", () => {
+  it("two child processes both persist vehicles", async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "motor-xproc-"));
+    const dataFile = path.join(tmpDir, "vehicles.json");
+    const lockFile = path.join(tmpDir, "vehicles.lock");
+    fs.writeFileSync(dataFile, "[]", "utf-8");
+
+    const workerSrc = `
+import { createVehicle, __setInventoryPathsForTests } from ${JSON.stringify(
+      path.join(process.cwd(), "src/lib/vehicles.ts")
+    )};
+__setInventoryPathsForTests({
+  dataPath: process.env.MOTOR_INVENTORY_DATA_PATH,
+  lockPath: process.env.MOTOR_INVENTORY_LOCK_PATH,
+});
+const label = process.env.WORKER_LABEL || "W";
+const v = createVehicle({
+  make: label,
+  model: "CrossProc",
+  year: 2024,
+  price: 50000,
+  currency: "USD",
+  mileage: 1000,
+  fuel: "Petrol",
+  transmission: "Automatic",
+  engine: "2.0L",
+  bodyType: "SUV",
+  exteriorColor: "Black",
+  interiorColor: "Black",
+  condition: "Excellent",
+  description: "Cross process test vehicle",
+  features: ["Test"],
+  location: "Lagos",
+  availability: "available",
+  featured: false,
+  images: [],
+});
+process.stdout.write(JSON.stringify({ id: v.id, make: v.make }));
+`;
+
+    const workerFile = path.join(tmpDir, "worker.mts");
+    fs.writeFileSync(workerFile, workerSrc);
+
+    const { spawn } = await import("node:child_process");
+
+    function runWorker(label: string): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const child = spawn(
+          process.execPath,
+          ["--experimental-strip-types", workerFile],
+          {
+            env: {
+              ...process.env,
+              MOTOR_INVENTORY_DATA_PATH: dataFile,
+              MOTOR_INVENTORY_LOCK_PATH: lockFile,
+              WORKER_LABEL: label,
+            },
+            cwd: process.cwd(),
+          }
+        );
+        let out = "";
+        let err = "";
+        child.stdout.on("data", (d) => (out += d));
+        child.stderr.on("data", (d) => (err += d));
+        child.on("close", (code) => {
+          if (code !== 0) reject(new Error(`worker ${label} exit ${code}: ${err}`));
+          else resolve(out);
+        });
+      });
+    }
+
+    try {
+      const [outA, outB] = await Promise.all([runWorker("ProcA"), runWorker("ProcB")]);
+      const a = JSON.parse(outA);
+      const b = JSON.parse(outB);
+      assert.notEqual(a.id, b.id);
+      const raw = JSON.parse(fs.readFileSync(dataFile, "utf-8"));
+      assert.ok(Array.isArray(raw));
+      assert.equal(raw.length, 2);
+      const makes = new Set(raw.map((v: { make: string }) => v.make));
+      assert.ok(makes.has("ProcA"));
+      assert.ok(makes.has("ProcB"));
+      // JSON still valid, lock released
+      assert.equal(fs.existsSync(lockFile), false);
+    } finally {
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {
+        /* ignore */
+      }
+    }
+  });
+});

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import {
   validateVehicle,
   dedupeVehiclesById,
@@ -16,6 +17,7 @@ import {
 import type { Vehicle, VehicleAvailability } from "./vehicle-types.ts";
 
 
+
 export type { Vehicle, VehicleAvailability, VehicleFilters };
 export {
   filterAndSortVehicles,
@@ -27,10 +29,16 @@ export {
 
 const PLACEHOLDER_IMAGE = "/vehicles/placeholder.svg";
 
-/** Overridable paths for isolated concurrency tests */
-let dataPath = path.join(process.cwd(), "data", "vehicles.json");
-let lockPath = path.join(process.cwd(), "data", "vehicles.lock");
-let publicDir = path.join(process.cwd(), "public");
+/** Overridable paths for isolated concurrency tests / child processes */
+let dataPath =
+  process.env.MOTOR_INVENTORY_DATA_PATH ||
+  path.join(process.cwd(), "data", "vehicles.json");
+let lockPath =
+  process.env.MOTOR_INVENTORY_LOCK_PATH ||
+  path.join(process.cwd(), "data", "vehicles.lock");
+let publicDir =
+  process.env.MOTOR_INVENTORY_PUBLIC_DIR ||
+  path.join(process.cwd(), "public");
 
 /** @internal Test-only path injection — do not use in application code */
 export function __setInventoryPathsForTests(opts: {
@@ -45,10 +53,19 @@ export function __setInventoryPathsForTests(opts: {
 
 /** @internal Restore default paths after tests */
 export function __resetInventoryPathsForTests(): void {
-  dataPath = path.join(process.cwd(), "data", "vehicles.json");
-  lockPath = path.join(process.cwd(), "data", "vehicles.lock");
-  publicDir = path.join(process.cwd(), "public");
+  dataPath =
+    process.env.MOTOR_INVENTORY_DATA_PATH ||
+    path.join(process.cwd(), "data", "vehicles.json");
+  lockPath =
+    process.env.MOTOR_INVENTORY_LOCK_PATH ||
+    path.join(process.cwd(), "data", "vehicles.lock");
+  publicDir =
+    process.env.MOTOR_INVENTORY_PUBLIC_DIR ||
+    path.join(process.cwd(), "public");
 }
+
+
+
 
 export function publicAssetExists(publicPath: string): boolean {
   if (!isSafePublicImagePath(publicPath)) return false;
@@ -74,48 +91,131 @@ export function getVehicleImage(src?: string | null): string {
   return PLACEHOLDER_IMAGE;
 }
 
+/** How long a lock may sit untouched before another process may attempt recovery */
+const STALE_LOCK_MS = 120_000;
+
+export type InventoryLockHandle = {
+  /** Unique ownership token written into the lock file */
+  token: string;
+};
+
 function sleepMs(ms: number) {
   const until = Date.now() + ms;
   while (Date.now() < until) {
-    /* spin — keeps lock acquisition synchronous and predictable under Node */
+    /* spin — keeps lock acquisition synchronous */
   }
 }
 
-function acquireLock(timeoutMs = 8000): boolean {
+function newLockToken(): string {
+  return `${process.pid}-${Date.now()}-${crypto.randomBytes(16).toString("hex")}`;
+}
+
+/**
+ * Attempt to remove a lock that is both old and still has the same content we observed.
+ * Never blindly unlink — verify ownership token before and after rename so we cannot
+ * delete a newer owner's lock.
+ */
+function tryRecoverStaleLock(): void {
+  let observed: string;
+  let mtimeMs: number;
+  try {
+    observed = fs.readFileSync(lockPath, "utf-8");
+    mtimeMs = fs.statSync(lockPath).mtimeMs;
+  } catch {
+    return;
+  }
+  if (Date.now() - mtimeMs < STALE_LOCK_MS) return;
+
+  // Re-read to reduce TOCTOU window before rename
+  let observed2: string;
+  try {
+    observed2 = fs.readFileSync(lockPath, "utf-8");
+  } catch {
+    return;
+  }
+  if (observed2 !== observed) return;
+
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(observed)
+    .digest("hex")
+    .slice(0, 16);
+  const deadPath = `${lockPath}.stale.${tokenHash}`;
+
+  try {
+    // Atomic rename of the path — if another process already replaced the lock,
+    // we may rename their file; we must verify content before destroying it.
+    fs.renameSync(lockPath, deadPath);
+  } catch {
+    return;
+  }
+
+  try {
+    const deadContent = fs.readFileSync(deadPath, "utf-8");
+    if (deadContent === observed) {
+      // Confirmed we moved the stale lock we observed — safe to discard
+      fs.unlinkSync(deadPath);
+    } else {
+      // We moved a different owner's lock — put it back
+      try {
+        fs.renameSync(deadPath, lockPath);
+      } catch {
+        /* another process may have recreated lockPath; leave deadPath for inspection */
+      }
+    }
+  } catch {
+    try {
+      if (fs.existsSync(deadPath)) fs.unlinkSync(deadPath);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+/**
+ * Acquire exclusive inventory lock. Returns a handle that must be passed to releaseLock.
+ * Only the holder of the matching token may release.
+ */
+function acquireLock(timeoutMs = 15_000): InventoryLockHandle | null {
   const start = Date.now();
+  const token = newLockToken();
+
   while (Date.now() - start < timeoutMs) {
     try {
       const fd = fs.openSync(lockPath, "wx");
       try {
-        fs.writeFileSync(fd, `${process.pid}\n${Date.now()}`);
+        fs.writeFileSync(fd, token, "utf-8");
       } finally {
         fs.closeSync(fd);
       }
-      return true;
+      return { token };
     } catch {
-      // Stale lock recovery: if lock is older than 30s, remove and retry
-      try {
-        const st = fs.statSync(lockPath);
-        if (Date.now() - st.mtimeMs > 30_000) {
-          fs.unlinkSync(lockPath);
-          continue;
-        }
-      } catch {
-        /* ignore */
-      }
-      sleepMs(15);
+      tryRecoverStaleLock();
+      sleepMs(20);
     }
   }
-  return false;
+  return null;
 }
 
-function releaseLock() {
+/**
+ * Release lock only if the file still contains our ownership token.
+ * Prevents a long-running owner from deleting a newer owner's lock after
+ * mistaken stale recovery (or any other replacement of the lock file).
+ */
+function releaseLock(handle: InventoryLockHandle): void {
+  if (!handle?.token) return;
   try {
-    if (fs.existsSync(lockPath)) fs.unlinkSync(lockPath);
+    if (!fs.existsSync(lockPath)) return;
+    const current = fs.readFileSync(lockPath, "utf-8");
+    if (current === handle.token) {
+      fs.unlinkSync(lockPath);
+    }
+    // If token does not match, another process owns the lock — leave it alone
   } catch {
     /* ignore */
   }
 }
+
 
 function readVehiclesRaw(): unknown {
   try {
@@ -172,12 +272,13 @@ function writeVehiclesUnlocked(vehicles: Vehicle[]): void {
 
 /**
  * Run a mutation under exclusive lock:
- * acquire → read latest → mutate → validate+atomic write → release
+ * acquire → read latest → mutate → validate+atomic write → release (token-checked)
  */
 function withInventoryMutation<T>(
   mutator: (vehicles: Vehicle[]) => { vehicles: Vehicle[]; result: T }
 ): T {
-  if (!acquireLock()) {
+  const handle = acquireLock();
+  if (!handle) {
     throw new Error("Could not acquire inventory lock — try again");
   }
   try {
@@ -186,9 +287,10 @@ function withInventoryMutation<T>(
     writeVehiclesUnlocked(next);
     return result;
   } finally {
-    releaseLock();
+    releaseLock(handle);
   }
 }
+
 
 export function getAllVehicles(includeUnpublished = false): Vehicle[] {
   const vehicles = readVehicles();
@@ -335,3 +437,29 @@ export function isInventoryLocked(): boolean {
     return false;
   }
 }
+
+/** @internal Lock test surface — ownership-safe acquire/release and stale recovery */
+export const __lockTestApi = {
+  acquireLock: (timeoutMs?: number) => acquireLock(timeoutMs),
+  releaseLock: (handle: InventoryLockHandle) => releaseLock(handle),
+  tryRecoverStaleLock: () => tryRecoverStaleLock(),
+  STALE_LOCK_MS,
+  getLockPath: () => lockPath,
+  readLockToken: (): string | null => {
+    try {
+      if (!fs.existsSync(lockPath)) return null;
+      return fs.readFileSync(lockPath, "utf-8");
+    } catch {
+      return null;
+    }
+  },
+  /** Force-write a lock file with given token and optional backdated mtime (tests only) */
+  plantLock: (token: string, ageMs = 0) => {
+    fs.writeFileSync(lockPath, token, "utf-8");
+    if (ageMs > 0) {
+      const past = new Date(Date.now() - ageMs);
+      fs.utimesSync(lockPath, past, past);
+    }
+  },
+};
+
