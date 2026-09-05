@@ -1,0 +1,84 @@
+import { searchVehicles, getAvailableMakes, getAvailableBodyTypes } from "@/lib/vehicles";
+import { VehicleCard } from "@/components/VehicleCard";
+import { InventoryFilters } from "@/components/InventoryFilters";
+
+interface SearchParams {
+  q?: string;
+  make?: string;
+  bodyType?: string;
+  fuel?: string;
+  transmission?: string;
+  sort?: string;
+  priceMin?: string;
+  priceMax?: string;
+  yearMin?: string;
+  yearMax?: string;
+}
+
+export const metadata = {
+  title: "Inventory",
+  description: "Browse our current selection of premium vehicles at Signature Motors.",
+};
+
+export default async function InventoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+
+  const vehicles = searchVehicles({
+    q: params.q,
+    make: params.make,
+    bodyType: params.bodyType,
+    fuel: params.fuel,
+    transmission: params.transmission,
+    sort: (params.sort as any) || "newest",
+    priceMin: params.priceMin ? Number(params.priceMin) : undefined,
+    priceMax: params.priceMax ? Number(params.priceMax) : undefined,
+    yearMin: params.yearMin ? Number(params.yearMin) : undefined,
+    yearMax: params.yearMax ? Number(params.yearMax) : undefined,
+  });
+
+  const makes = getAvailableMakes();
+  const bodyTypes = getAvailableBodyTypes();
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mb-10">
+        <p className="text-sm font-semibold uppercase tracking-wider text-gold mb-2">
+          Our Collection
+        </p>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Vehicle Inventory</h1>
+        <p className="mt-2 text-muted-foreground">
+          {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} available
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-8 lg:flex-row">
+        {/* Filters sidebar */}
+        <aside className="w-full lg:w-64 shrink-0">
+          <InventoryFilters makes={makes} bodyTypes={bodyTypes} current={params} />
+        </aside>
+
+        {/* Results */}
+        <div className="flex-1">
+          {vehicles.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-12 text-center">
+              <p className="text-lg font-medium text-foreground mb-2">No vehicles found</p>
+              <p className="text-muted-foreground">
+                Try adjusting your filters or search terms.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {vehicles.map((v) => (
+                <VehicleCard key={v.id} vehicle={v} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
