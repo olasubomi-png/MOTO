@@ -30,9 +30,9 @@ export const siteConfig = {
   /** Phone for tel: links */
   phone: process.env.NEXT_PUBLIC_PHONE_NUMBER || "+2348070627688",
 
-  /** Contact email (optional override) */
-  email:
-    process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@tosinsignaturemotors.com",
+  /** Contact email — set NEXT_PUBLIC_CONTACT_EMAIL when a real address is confirmed */
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "",
+
 
   /** Official WhatsApp Channel */
   whatsappChannel:

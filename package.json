@@ -6,8 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/lib/__tests__/vehicles.test.ts"
   },
+
   "dependencies": {
     "next": "16.3.4",
     "react": "19.2.8",
