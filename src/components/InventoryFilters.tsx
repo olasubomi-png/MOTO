@@ -3,10 +3,23 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+export type InventoryFilterState = {
+  q?: string;
+  make?: string;
+  bodyType?: string;
+  fuel?: string;
+  transmission?: string;
+  sort?: string;
+  priceMin?: string;
+  priceMax?: string;
+  yearMin?: string;
+  yearMax?: string;
+};
+
 interface Props {
   makes: string[];
   bodyTypes: string[];
-  current: Record<string, string | undefined>;
+  current: InventoryFilterState;
 }
 
 export function InventoryFilters({ makes, bodyTypes, current }: Props) {

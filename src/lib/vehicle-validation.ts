@@ -1,4 +1,4 @@
-import type { Vehicle, VehicleAvailability } from "./vehicle-types.ts";
+import type { Vehicle, VehicleAvailability } from "./vehicle-types";
 
 
 const VALID_AVAILABILITY: VehicleAvailability[] = [

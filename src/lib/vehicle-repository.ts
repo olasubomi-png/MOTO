@@ -5,15 +5,15 @@
 import "server-only";
 
 import { and, desc, eq, gte, lte, ne, or, type SQL } from "drizzle-orm";
-import { getDb, vehicles } from "../db/index.ts";
-import type { Vehicle } from "./vehicle-types.ts";
-import type { VehicleFilters } from "./vehicle-query.ts";
+import { getDb, vehicles } from "../db/index";
+import type { Vehicle } from "./vehicle-types";
+import type { VehicleFilters } from "./vehicle-query";
 import {
   filterAndSortVehicles,
   pickRelatedVehicles,
-} from "./vehicle-query.ts";
-import { validateVehicle } from "./vehicle-validation.ts";
-import { rowToVehicle, vehicleToRow } from "./vehicle-mapper.ts";
+} from "./vehicle-query";
+import { validateVehicle } from "./vehicle-validation";
+import { rowToVehicle, vehicleToRow } from "./vehicle-mapper";
 
 export type { Vehicle, VehicleFilters };
 
@@ -270,7 +270,11 @@ export async function updateVehicle(
     throw new InventoryConflictError();
   }
 
-  return getVehicleById(id);
+  const updated = await getVehicleById(id);
+  if (!updated) {
+    throw new Error(`Vehicle ${id} disappeared after update`);
+  }
+  return updated;
 }
 
 export async function deleteVehicle(id: string): Promise<boolean> {
@@ -298,7 +302,7 @@ export async function upsertVehicle(vehicle: Vehicle): Promise<Vehicle> {
     mileage: Math.round(vehicle.mileage),
   });
 
-  await db
+  const inserted = await db
     .insert(vehicles)
     .values(row)
     .onConflictDoUpdate({
@@ -325,9 +329,11 @@ export async function upsertVehicle(vehicle: Vehicle): Promise<Vehicle> {
         images: row.images,
         updatedAt: new Date(),
       },
-    });
+    })
+    .returning();
 
-  const saved = await getVehicleById(vehicle.id);
-  if (!saved) throw new Error(`Upsert failed for vehicle ${vehicle.id}`);
-  return saved;
+  if (!inserted.length) {
+    throw new Error(`Upsert failed for vehicle ${vehicle.id}`);
+  }
+  return rowToVehicle(inserted[0]);
 }

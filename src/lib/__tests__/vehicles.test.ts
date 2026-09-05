@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { Vehicle } from "../vehicle-types.ts";
+import type { Vehicle } from "../vehicle-types";
 import {
   validateVehicle,
   dedupeVehiclesById,
   isSafePublicImagePath,
-} from "../vehicle-validation.ts";
+} from "../vehicle-validation";
 import {
   filterAndSortVehicles,
   pickRelatedVehicles,
   formatPrice,
   formatMileage,
-} from "../vehicle-query.ts";
-import { getVehicleImage, PLACEHOLDER_IMAGE } from "../vehicle-images.ts";
+} from "../vehicle-query";
+import { getVehicleImage, PLACEHOLDER_IMAGE } from "../vehicle-images";
 
 function sample(partial: Partial<Vehicle> & Pick<Vehicle, "id">): Vehicle {
   return {
@@ -157,7 +157,7 @@ describe("formatters", () => {
 
 describe("vehicle-mapper pure shape", () => {
   it("rowToVehicle produces ISO date strings", async () => {
-    const { rowToVehicle } = await import("../vehicle-mapper.ts");
+    const { rowToVehicle } = await import("../vehicle-mapper");
     const row = {
       id: "1",
       make: "BMW",

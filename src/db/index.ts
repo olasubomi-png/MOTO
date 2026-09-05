@@ -2,7 +2,7 @@ import "server-only";
 
 import { neon } from "@neondatabase/serverless";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import * as schema from "./schema.ts";
+import * as schema from "./schema";
 
 export type AppDatabase = NeonHttpDatabase<typeof schema>;
 
@@ -33,4 +33,4 @@ export function __resetDbForTests(): void {
   _db = null;
 }
 
-export * from "./schema.ts";
+export * from "./schema";

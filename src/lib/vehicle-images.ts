@@ -1,4 +1,4 @@
-import { isSafePublicImagePath } from "./vehicle-validation.ts";
+import { isSafePublicImagePath } from "./vehicle-validation";
 
 export const PLACEHOLDER_IMAGE = "/vehicles/placeholder.svg";
 

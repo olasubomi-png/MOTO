@@ -13,8 +13,8 @@ import {
   dedupeVehiclesById,
   isSafePublicImagePath,
   type VehicleValidationIssue,
-} from "./vehicle-validation.ts";
-import type { Vehicle } from "./vehicle-types.ts";
+} from "../vehicle-validation";
+import type { Vehicle } from "../vehicle-types";
 
 export type { Vehicle };
 
@@ -274,7 +274,7 @@ export function createVehicle(
     };
     const issues = validateVehicle(newVehicle);
     if (issues.length > 0) {
-      throw new Error(issues.map((i) => i.message).join("; "));
+      throw new Error(issues.map((i: VehicleValidationIssue) => i.message).join("; "));
     }
     if (vehicles.some((v) => v.id === newVehicle.id)) {
       throw new Error("Duplicate vehicle id");
@@ -303,7 +303,7 @@ export function updateVehicle(
     };
     const issues = validateVehicle(next);
     if (issues.length > 0) {
-      throw new Error(issues.map((i) => i.message).join("; "));
+      throw new Error(issues.map((i: VehicleValidationIssue) => i.message).join("; "));
     }
     const copy = [...vehicles];
     copy[idx] = next;

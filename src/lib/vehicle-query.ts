@@ -1,4 +1,4 @@
-import type { Vehicle } from "./vehicle-types.ts";
+import type { Vehicle } from "./vehicle-types";
 
 
 export type VehicleFilters = {

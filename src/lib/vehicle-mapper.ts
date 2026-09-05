@@ -1,5 +1,5 @@
-import type { Vehicle, VehicleAvailability } from "./vehicle-types.ts";
-import type { VehicleRow, NewVehicleRow } from "../db/schema.ts";
+import type { Vehicle, VehicleAvailability } from "./vehicle-types";
+import type { VehicleRow, NewVehicleRow } from "../db/schema";
 
 /** Map a DB row to the shared Vehicle domain type (ISO date strings). */
 export function rowToVehicle(row: VehicleRow): Vehicle {

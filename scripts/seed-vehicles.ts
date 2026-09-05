@@ -1,8 +1,11 @@
 /**
- * Idempotent seed: upsert vehicles from data/vehicles.json into Neon.
- * Does NOT delete existing vehicles that are absent from JSON.
+ * Seed vehicles from data/vehicles.json into Neon.
  *
- * Usage: DATABASE_URL=... npm run db:seed
+ * Default: insert missing IDs only — does NOT overwrite existing rows
+ * (preserves admin edits). Does NOT delete vehicles absent from JSON.
+ *
+ * Force overwrite of matching IDs:
+ *   SEED_FORCE=1 DATABASE_URL=... npm run db:seed
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
@@ -10,7 +13,11 @@ config();
 
 import { readFileSync } from "fs";
 import path from "path";
-import { upsertVehicle } from "../src/lib/vehicle-repository";
+import {
+  getVehicleById,
+  createVehicle,
+  upsertVehicle,
+} from "../src/lib/vehicle-repository";
 import type { Vehicle } from "../src/lib/vehicle-types";
 import { validateVehicle } from "../src/lib/vehicle-validation";
 
@@ -20,6 +27,7 @@ async function main() {
     process.exit(1);
   }
 
+  const force = process.env.SEED_FORCE === "1" || process.env.SEED_FORCE === "true";
   const file = path.join(process.cwd(), "data", "vehicles.json");
   const raw = JSON.parse(readFileSync(file, "utf-8")) as unknown;
   if (!Array.isArray(raw)) {
@@ -27,8 +35,11 @@ async function main() {
     process.exit(1);
   }
 
-  let ok = 0;
+  let inserted = 0;
   let skipped = 0;
+  let updated = 0;
+  let invalid = 0;
+
   for (const item of raw) {
     const issues = validateVehicle(item);
     if (issues.length > 0) {
@@ -36,18 +47,40 @@ async function main() {
         "Skip invalid record:",
         issues.map((i) => `${i.field}: ${i.message}`).join("; ")
       );
-      skipped += 1;
+      invalid += 1;
       continue;
     }
     const vehicle = item as Vehicle;
-    await upsertVehicle(vehicle);
+    const existing = await getVehicleById(vehicle.id);
+
+    if (existing && !force) {
+      console.log(
+        `Skip existing ${vehicle.id} — ${vehicle.year} ${vehicle.make} ${vehicle.model} (admin data preserved)`
+      );
+      skipped += 1;
+      continue;
+    }
+
+    if (existing && force) {
+      await upsertVehicle(vehicle);
+      console.log(
+        `Force-updated ${vehicle.id} — ${vehicle.year} ${vehicle.make} ${vehicle.model}`
+      );
+      updated += 1;
+      continue;
+    }
+
+    // create with explicit id
+    await createVehicle({ ...vehicle, id: vehicle.id });
     console.log(
-      `Upserted ${vehicle.id} — ${vehicle.year} ${vehicle.make} ${vehicle.model}`
+      `Inserted ${vehicle.id} — ${vehicle.year} ${vehicle.make} ${vehicle.model}`
     );
-    ok += 1;
+    inserted += 1;
   }
 
-  console.log(`Done. Upserted ${ok}, skipped ${skipped}.`);
+  console.log(
+    `Done. inserted=${inserted}, skipped_existing=${skipped}, force_updated=${updated}, invalid=${invalid}. force=${force}`
+  );
 }
 
 main().catch((err) => {
