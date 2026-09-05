@@ -33,7 +33,8 @@ export default async function InventoryPage({
     bodyType: params.bodyType,
     fuel: params.fuel,
     transmission: params.transmission,
-    sort: (params.sort as any) || "newest",
+    sort: (params.sort as "newest" | "price-asc" | "price-desc" | "mileage") || "newest",
+
     priceMin: params.priceMin ? Number(params.priceMin) : undefined,
     priceMax: params.priceMax ? Number(params.priceMax) : undefined,
     yearMin: params.yearMin ? Number(params.yearMin) : undefined,

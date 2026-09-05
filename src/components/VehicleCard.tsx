@@ -1,13 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Vehicle, formatPrice, formatMileage } from "@/lib/vehicles";
+import { Vehicle, formatPrice, formatMileage, getVehicleImage } from "@/lib/vehicles";
 
 interface VehicleCardProps {
   vehicle: Vehicle;
 }
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
-  const mainImage = vehicle.images[0] || "/vehicles/placeholder.jpg";
+  const mainImage = getVehicleImage(vehicle.images[0]);
   const isAvailable = vehicle.availability === "available";
   const isReserved = vehicle.availability === "reserved";
   const isSold = vehicle.availability === "sold";
@@ -26,6 +26,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
+
         {/* Availability badge */}
         <div className="absolute top-3 left-3">
           {isAvailable && (

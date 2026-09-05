@@ -191,3 +191,45 @@ export function formatPrice(price: number, currency = "USD") {
 export function formatMileage(mileage: number) {
   return new Intl.NumberFormat("en-US").format(mileage) + " km";
 }
+
+export function getRelatedVehicles(vehicle: Vehicle, limit = 4): Vehicle[] {
+  const all = getAllVehicles().filter(
+    (v) =>
+      v.id !== vehicle.id &&
+      (v.availability === "available" || v.availability === "reserved")
+  );
+
+  // Score by similarity
+  const scored = all.map((v) => {
+    let score = 0;
+    if (v.bodyType === vehicle.bodyType) score += 3;
+    if (v.make === vehicle.make) score += 2;
+    const priceDiff = Math.abs(v.price - vehicle.price) / vehicle.price;
+    if (priceDiff < 0.25) score += 2;
+    else if (priceDiff < 0.5) score += 1;
+    if (v.fuel === vehicle.fuel) score += 1;
+    return { vehicle: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const related = scored.slice(0, limit).map((s) => s.vehicle);
+
+  // Fill remaining with newest if needed
+  if (related.length < limit) {
+    const ids = new Set(related.map((v) => v.id).concat(vehicle.id));
+    const extras = all
+      .filter((v) => !ids.has(v.id))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit - related.length);
+    related.push(...extras);
+  }
+
+  return related;
+}
+
+/** Safe image URL – falls back to placeholder when missing */
+export function getVehicleImage(src?: string | null): string {
+  if (!src || src.trim() === "") return "/vehicles/placeholder.svg";
+  return src;
+}
+
