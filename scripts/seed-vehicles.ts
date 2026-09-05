@@ -5,19 +5,21 @@
  * (preserves admin edits). Does NOT delete vehicles absent from JSON.
  *
  * Force overwrite of matching IDs:
- *   SEED_FORCE=1 DATABASE_URL=... npm run db:seed
+ *   SEED_FORCE=1 DATABASE_URL=... pnpm db:seed
+ *
+ * Run via tsx (see package.json) so TypeScript path resolution works on Node 22 ESM.
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
 config();
 
-import { readFileSync } from "fs";
-import path from "path";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import {
   getVehicleById,
   createVehicle,
   upsertVehicle,
-} from "../src/lib/vehicle-repository";
+} from "../src/lib/vehicle-repository-core";
 import type { Vehicle } from "../src/lib/vehicle-types";
 import { validateVehicle } from "../src/lib/vehicle-validation";
 
@@ -27,7 +29,8 @@ async function main() {
     process.exit(1);
   }
 
-  const force = process.env.SEED_FORCE === "1" || process.env.SEED_FORCE === "true";
+  const force =
+    process.env.SEED_FORCE === "1" || process.env.SEED_FORCE === "true";
   const file = path.join(process.cwd(), "data", "vehicles.json");
   const raw = JSON.parse(readFileSync(file, "utf-8")) as unknown;
   if (!Array.isArray(raw)) {
@@ -70,7 +73,6 @@ async function main() {
       continue;
     }
 
-    // create with explicit id
     await createVehicle({ ...vehicle, id: vehicle.id });
     console.log(
       `Inserted ${vehicle.id} — ${vehicle.year} ${vehicle.make} ${vehicle.model}`
