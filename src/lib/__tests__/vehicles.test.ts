@@ -24,7 +24,7 @@ import {
   isInventoryLocked,
   __setInventoryPathsForTests,
   __resetInventoryPathsForTests,
-} from "../vehicles.ts";
+} from "../vehicles-repo.ts";
 
 function sample(partial: Partial<Vehicle> & Pick<Vehicle, "id">): Vehicle {
   return {
@@ -397,7 +397,7 @@ describe("lock ownership safety", () => {
   });
 
   it("releaseLock only removes own token", async () => {
-    const { __lockTestApi } = await import("../vehicles.ts");
+    const { __lockTestApi } = await import("../vehicles-repo.ts");
     const a = __lockTestApi.acquireLock(5000);
     assert.ok(a);
     const tokenA = a!.token;
@@ -414,7 +414,7 @@ describe("lock ownership safety", () => {
   });
 
   it("stale recovery does not delete a fresh lock with different token", async () => {
-    const { __lockTestApi } = await import("../vehicles.ts");
+    const { __lockTestApi } = await import("../vehicles-repo.ts");
     const staleToken = "stale-owner-token";
     __lockTestApi.plantLock(staleToken, __lockTestApi.STALE_LOCK_MS + 5_000);
     // New owner acquires after recovery
@@ -430,7 +430,7 @@ describe("lock ownership safety", () => {
   });
 
   it("failed operation releases only its own lock", async () => {
-    const { __lockTestApi } = await import("../vehicles.ts");
+    const { __lockTestApi } = await import("../vehicles-repo.ts");
     assert.throws(() => createVehicle(payload({ make: "" })));
     assert.equal(isInventoryLocked(), false);
     assert.equal(__lockTestApi.readLockToken(), null);
@@ -446,7 +446,7 @@ describe("cross-process concurrent creates", () => {
 
     const workerSrc = `
 import { createVehicle, __setInventoryPathsForTests } from ${JSON.stringify(
-      path.join(process.cwd(), "src/lib/vehicles.ts")
+      path.join(process.cwd(), "src/lib/vehicles-repo.ts")
     )};
 __setInventoryPathsForTests({
   dataPath: process.env.MOTOR_INVENTORY_DATA_PATH,

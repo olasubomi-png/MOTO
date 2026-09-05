@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/config";
-import { getAllVehicles } from "@/lib/vehicles";
+import { getAllVehicles } from "@/lib/vehicles-public";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteConfig.siteUrl.replace(/\/$/, "");

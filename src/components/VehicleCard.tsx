@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Vehicle, formatPrice, formatMileage, getVehicleImage } from "@/lib/vehicles";
+import type { Vehicle } from "@/lib/vehicle-types";
+import { formatPrice, formatMileage } from "@/lib/vehicle-query";
+import { getVehicleImage } from "@/lib/vehicle-images";
 
 interface VehicleCardProps {
   vehicle: Vehicle;

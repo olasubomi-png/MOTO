@@ -6,7 +6,7 @@ import {
   getRelatedVehicles,
   formatPrice,
   formatMileage,
-} from "@/lib/vehicles";
+} from "@/lib/vehicles-public";
 import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 import { VehicleGallery } from "@/components/VehicleGallery";
 import { VehicleCard } from "@/components/VehicleCard";

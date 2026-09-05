@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
-import { getVehicleImage } from "@/lib/vehicles";
+import { getVehicleImage } from "@/lib/vehicle-images";
 
 const FALLBACK = "/vehicles/placeholder.svg";
 

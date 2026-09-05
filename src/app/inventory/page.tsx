@@ -4,7 +4,7 @@ import {
   getAvailableMakes,
   getAvailableBodyTypes,
   isSampleInventory,
-} from "@/lib/vehicles";
+} from "@/lib/vehicles-public";
 import { VehicleCard } from "@/components/VehicleCard";
 import { InventoryFilters } from "@/components/InventoryFilters";
 

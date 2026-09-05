@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getFeaturedVehicles, getRecentVehicles, getAvailableBodyTypes } from "@/lib/vehicles";
+import { getFeaturedVehicles, getRecentVehicles, getAvailableBodyTypes } from "@/lib/vehicles-public";
 import { VehicleCard } from "@/components/VehicleCard";
 import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 
