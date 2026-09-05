@@ -73,11 +73,17 @@ export default async function InventoryPage({
         <p className="mt-2 text-muted-foreground">
           {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} matching your search
         </p>
-        {sample && (
+        {sample ? (
           <p className="mt-3 text-xs text-muted-foreground/80 border border-border rounded-lg px-3 py-2 bg-card max-w-2xl">
             Catalogue photos are being prepared. Listings below use sample specifications for
             demonstration — prices are shown in the currency recorded for each vehicle (USD).
             Contact Tosin Signature Motors for current availability and confirmed pricing.
+          </p>
+        ) : (
+          <p className="mt-3 text-xs text-muted-foreground/80 border border-border/80 rounded-lg px-3 py-2 bg-card/60 max-w-2xl">
+            Listings marked <span className="text-gold font-medium">Demo Vehicle</span> are
+            shown for platform demonstration only and are not confirmed Tosin Signature Motors stock.
+            Contact us for real availability and pricing.
           </p>
         )}
       </div>

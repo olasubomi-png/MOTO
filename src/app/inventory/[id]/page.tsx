@@ -7,6 +7,7 @@ import {
   formatPrice,
   formatMileage,
 } from "@/lib/vehicles-public";
+import { isDemoVehicle } from "@/lib/vehicle-types";
 
 import { siteConfig, buildWhatsAppUrl } from "@/lib/config";
 import { VehicleGallery } from "@/components/VehicleGallery";
@@ -78,14 +79,19 @@ function buildInquiryMessage(
     price: number;
     currency: string;
     availability: string;
+    condition: string;
+    location: string;
   }
 ): string {
   const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
   const price = formatPrice(vehicle.price, vehicle.currency);
+  if (isDemoVehicle(vehicle)) {
+    return `Hello Tosin Signature Motors, I saw the demo listing for the ${name} (${price}, ID: ${vehicle.id}) on your website. Could you advise on similar vehicles in your actual inventory?`;
+  }
   if (vehicle.availability === "reserved") {
     return `Hello Tosin Signature Motors, I'm interested in the ${name} (${price}, ID: ${vehicle.id}) which is currently marked as reserved. Please let me know if it becomes available or if you have similar vehicles.`;
   }
-  return `Hello Tosin Signature Motors, I'm interested in the ${name} (${price}, ID: ${vehicle.id}). Is it still available?`;
+  return `Hello Tosin Signature Motors, I'd like to enquire about the ${name} (${price}, ID: ${vehicle.id}). Could you share availability and next steps?`;
 }
 
 
@@ -101,6 +107,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
   const isAvailable = vehicle.availability === "available";
   const isReserved = vehicle.availability === "reserved";
   const isSold = vehicle.availability === "sold";
+  const isDemo = isDemoVehicle(vehicle);
 
   const whatsappUrl = buildWhatsAppUrl(buildInquiryMessage(vehicle));
   const sharePath = `/inventory/${vehicle.id}`;
@@ -151,7 +158,18 @@ export default async function VehicleDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-12">
         {/* Gallery */}
         <div className="lg:col-span-3 min-w-0">
-          <VehicleGallery
+          
+      {isDemo && (
+        <div className="mb-6 rounded-lg border border-gold/25 bg-card/80 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gold">Demo Vehicle</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This vehicle is displayed for demonstration purposes. Actual inventory, availability,
+            specifications and pricing may vary. Contact Tosin Signature Motors for confirmed stock.
+          </p>
+        </div>
+      )}
+
+      <VehicleGallery
             images={vehicle.images}
             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           />
@@ -227,7 +245,11 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                   <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                   </svg>
-                  {isReserved ? "Enquire about this reserved vehicle" : "Enquire on WhatsApp"}
+                  {isDemo
+                    ? "Ask About Availability"
+                    : isReserved
+                      ? "Enquire about this reserved vehicle"
+                      : "Enquire About This Vehicle"}
                 </a>
               ) : (
                 <div className="rounded-xl border border-border bg-card px-5 py-4 text-center">

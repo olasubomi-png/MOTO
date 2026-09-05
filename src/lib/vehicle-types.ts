@@ -28,3 +28,12 @@ export interface Vehicle {
   createdAt: string;
   updatedAt: string;
 }
+
+/** Demo catalogue vehicles are not confirmed Tosin Signature Motors stock. */
+export function isDemoVehicle(vehicle: Pick<Vehicle, "condition" | "location">): boolean {
+  return (
+    vehicle.condition === "Demo" ||
+    vehicle.location === "Demo Catalogue" ||
+    vehicle.location.startsWith("Demo")
+  );
+}

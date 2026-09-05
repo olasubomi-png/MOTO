@@ -188,3 +188,21 @@ describe("vehicle-mapper pure shape", () => {
     assert.equal(v.price, 100000);
   });
 });
+
+describe("isDemoVehicle", () => {
+  it("detects Demo condition and Demo Catalogue location", async () => {
+    const { isDemoVehicle } = await import("../vehicle-types");
+    assert.equal(
+      isDemoVehicle({ condition: "Demo", location: "Lagos" }),
+      true
+    );
+    assert.equal(
+      isDemoVehicle({ condition: "Excellent", location: "Demo Catalogue" }),
+      true
+    );
+    assert.equal(
+      isDemoVehicle({ condition: "Excellent", location: "Lagos, Nigeria" }),
+      false
+    );
+  });
+});

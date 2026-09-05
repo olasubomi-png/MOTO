@@ -13,8 +13,8 @@
     "bodyType": "Sedan",
     "exteriorColor": "Obsidian Black",
     "interiorColor": "Black Nappa Leather",
-    "condition": "Excellent",
-    "description": "Immaculate 2023 Mercedes-Benz S-Class in Obsidian Black. This flagship sedan offers unparalleled luxury, advanced driver assistance systems, and a whisper-quiet cabin. Fully loaded with Executive Rear Seat Package.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. Immaculate 2023 Mercedes-Benz S-Class in Obsidian Black. This flagship sedan offers unparalleled luxury, advanced driver assistance systems, and a whisper-quiet cabin. Fully loaded with Executive Rear Seat Package. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "Panoramic Roof",
       "Burmester 3D Sound",
@@ -23,10 +23,14 @@
       "Massage Seats",
       "Head-Up Display"
     ],
-    "location": "Lagos, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "available",
     "featured": true,
-    "images": [],
+    "images": [
+      "/vehicles/1/front.jpg",
+      "/vehicles/1/side.jpg",
+      "/vehicles/1/rear.jpg"
+    ],
     "createdAt": "2026-08-15T10:00:00Z",
     "updatedAt": "2026-08-15T10:00:00Z"
   },
@@ -44,8 +48,8 @@
     "bodyType": "SUV",
     "exteriorColor": "Alpine White",
     "interiorColor": "Cognac Vernasca",
-    "condition": "Like New",
-    "description": "Stunning 2024 BMW X7 M Sport in Alpine White. Spacious 7-seater luxury SUV with commanding presence, cutting-edge technology and exceptional comfort for the whole family.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. Stunning 2024 BMW X7 M Sport in Alpine White. Spacious 7-seater luxury SUV with commanding presence, cutting-edge technology and exceptional comfort for the whole family. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "M Sport Package",
       "Panoramic Sky Lounge",
@@ -54,10 +58,14 @@
       "Gesture Control",
       "Soft Close Doors"
     ],
-    "location": "Lagos, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "available",
     "featured": true,
-    "images": [],
+    "images": [
+      "/vehicles/2/front.jpg",
+      "/vehicles/2/side.jpg",
+      "/vehicles/2/rear.jpg"
+    ],
     "createdAt": "2026-08-20T14:30:00Z",
     "updatedAt": "2026-08-20T14:30:00Z"
   },
@@ -75,8 +83,8 @@
     "bodyType": "SUV",
     "exteriorColor": "Santorini Black",
     "interiorColor": "Ebony Windsor Leather",
-    "condition": "Excellent",
-    "description": "2023 Range Rover Sport HSE Dynamic. The perfect blend of luxury and capability. Exceptional off-road performance meets refined on-road manners.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. 2023 Range Rover Sport HSE Dynamic. The perfect blend of luxury and capability. Exceptional off-road performance meets refined on-road manners. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "Air Suspension",
       "Meridian Sound",
@@ -85,10 +93,13 @@
       "Terrain Response 2",
       "Heated/Cooled Seats"
     ],
-    "location": "Abuja, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "available",
     "featured": true,
-    "images": [],
+    "images": [
+      "/vehicles/3/front.jpg",
+      "/vehicles/3/side.jpg"
+    ],
     "createdAt": "2026-07-28T09:15:00Z",
     "updatedAt": "2026-07-28T09:15:00Z"
   },
@@ -106,8 +117,8 @@
     "bodyType": "SUV",
     "exteriorColor": "Atomic Silver",
     "interiorColor": "Black Semi-Aniline",
-    "condition": "Like New",
-    "description": "Nearly new 2024 Lexus LX 600 Luxury. Ultimate refinement and reliability from Lexus. Massive presence with sophisticated interior craftsmanship.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. Nearly new 2024 Lexus LX 600 Luxury. Ultimate refinement and reliability from Lexus. Massive presence with sophisticated interior craftsmanship. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "Mark Levinson Audio",
       "Four-Zone Climate",
@@ -116,10 +127,13 @@
       "Multi-Terrain Monitor",
       "Power Running Boards"
     ],
-    "location": "Lagos, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "available",
     "featured": false,
-    "images": [],
+    "images": [
+      "/vehicles/4/front.jpg",
+      "/vehicles/4/side.jpg"
+    ],
     "createdAt": "2026-09-01T11:00:00Z",
     "updatedAt": "2026-09-01T11:00:00Z"
   },
@@ -137,8 +151,8 @@
     "bodyType": "SUV",
     "exteriorColor": "Carrara White Metallic",
     "interiorColor": "Black Leather",
-    "condition": "Excellent",
-    "description": "2023 Porsche Cayenne. Pure driving pleasure in an SUV package. Sharp handling, powerful performance and iconic Porsche design language.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. 2023 Porsche Cayenne. Pure driving pleasure in an SUV package. Sharp handling, powerful performance and iconic Porsche design language. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "PASM",
       "Sport Chrono",
@@ -147,10 +161,13 @@
       "Adaptive Cruise",
       "14-way Power Seats"
     ],
-    "location": "Lagos, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "reserved",
     "featured": false,
-    "images": [],
+    "images": [
+      "/vehicles/5/front.jpg",
+      "/vehicles/5/side.jpg"
+    ],
     "createdAt": "2026-06-12T16:45:00Z",
     "updatedAt": "2026-08-25T10:00:00Z"
   },
@@ -168,8 +185,8 @@
     "bodyType": "SUV",
     "exteriorColor": "Pearl White",
     "interiorColor": "Beige Leather",
-    "condition": "Very Good",
-    "description": "Legendary Toyota Land Cruiser 300 Series. Unmatched reliability and off-road capability. Perfect for both city and adventure.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. Legendary Toyota Land Cruiser 300 Series. Unmatched reliability and off-road capability. Perfect for both city and adventure. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "Multi-Terrain Select",
       "Crawl Control",
@@ -178,10 +195,13 @@
       "Power Tailgate",
       "360 Camera"
     ],
-    "location": "Port Harcourt, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "available",
     "featured": false,
-    "images": [],
+    "images": [
+      "/vehicles/6/front.jpg",
+      "/vehicles/6/side.jpg"
+    ],
     "createdAt": "2026-05-05T08:20:00Z",
     "updatedAt": "2026-05-05T08:20:00Z"
   },
@@ -199,8 +219,8 @@
     "bodyType": "SUV",
     "exteriorColor": "Mythos Black",
     "interiorColor": "Okapi Brown",
-    "condition": "Excellent",
-    "description": "2023 Audi Q8 Prestige. Coupe-inspired luxury SUV with Quattro all-wheel drive, virtual cockpit and premium finishes throughout.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. 2023 Audi Q8 Prestige. Coupe-inspired luxury SUV with Quattro all-wheel drive, virtual cockpit and premium finishes throughout. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "Quattro",
       "Virtual Cockpit Plus",
@@ -209,10 +229,13 @@
       "Adaptive Air Suspension",
       "Soft Close"
     ],
-    "location": "Lagos, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "sold",
     "featured": false,
-    "images": [],
+    "images": [
+      "/vehicles/7/front.jpg",
+      "/vehicles/7/side.jpg"
+    ],
     "createdAt": "2026-04-18T13:10:00Z",
     "updatedAt": "2026-08-10T09:00:00Z"
   },
@@ -230,8 +253,8 @@
     "bodyType": "Sedan",
     "exteriorColor": "Carbon Black Metallic",
     "interiorColor": "Black Vernasca",
-    "condition": "Like New",
-    "description": "2024 BMW 530i M Sport. Elegant executive sedan with dynamic handling, latest iDrive 8.5 and M Sport aesthetics.",
+    "condition": "Demo",
+    "description": "Demo Vehicle. 2024 BMW 530i M Sport. Elegant executive sedan with dynamic handling, latest iDrive 8.5 and M Sport aesthetics. Displayed for demonstration of the MOTO platform only \u2014 not confirmed dealership stock.",
     "features": [
       "M Sport Package",
       "Live Cockpit Professional",
@@ -240,10 +263,13 @@
       "Driving Assistant",
       "Ambient Lighting"
     ],
-    "location": "Lagos, Nigeria",
+    "location": "Demo Catalogue",
     "availability": "available",
     "featured": true,
-    "images": [],
+    "images": [
+      "/vehicles/8/front.jpg",
+      "/vehicles/8/side.jpg"
+    ],
     "createdAt": "2026-08-28T15:00:00Z",
     "updatedAt": "2026-08-28T15:00:00Z"
   }

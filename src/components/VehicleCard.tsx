@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Vehicle } from "@/lib/vehicle-types";
+import { isDemoVehicle, type Vehicle } from "@/lib/vehicle-types";
 import { formatPrice, formatMileage } from "@/lib/vehicle-query";
 import { getVehicleImage } from "@/lib/vehicle-images";
 
@@ -13,6 +13,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
   const isAvailable = vehicle.availability === "available";
   const isReserved = vehicle.availability === "reserved";
   const isSold = vehicle.availability === "sold";
+  const isDemo = isDemoVehicle(vehicle);
 
   return (
     <Link
@@ -33,14 +34,19 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
-        {/* Availability badge */}
-        <div className="absolute top-3 left-3">
-          {isAvailable && (
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          {isDemo && (
+            <span className="inline-flex items-center rounded-full border border-gold/50 bg-black/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold backdrop-blur-sm">
+              Demo Vehicle
+            </span>
+          )}
+          {!isDemo && isAvailable && (
             <span className="inline-flex items-center rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
               Available
             </span>
           )}
-          {isReserved && (
+          {!isDemo && isReserved && (
             <span className="inline-flex items-center rounded-full bg-amber-500/90 px-2.5 py-0.5 text-xs font-semibold text-black backdrop-blur-sm">
               Reserved
             </span>
