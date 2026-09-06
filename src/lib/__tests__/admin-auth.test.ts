@@ -4,7 +4,7 @@ import {
   createSessionTokenWithSecret,
   parseSessionTokenWithSecret,
   verifyCredentials,
-} from "../admin-auth-crypto";
+} from "../admin-auth-crypto.ts";
 
 const SECRET = "test-secret-at-least-sixteen-chars";
 

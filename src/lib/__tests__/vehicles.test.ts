@@ -212,3 +212,19 @@ describe("isDemoVehicle", () => {
     );
   });
 });
+
+describe("image safety rejects dangerous protocols", () => {
+  it("rejects javascript and data URLs", () => {
+    assert.equal(isSafePublicImagePath("javascript:alert(1)"), false);
+    assert.equal(isSafePublicImagePath("data:text/html;base64,xx"), false);
+    assert.equal(isSafePublicImagePath("file:///etc/passwd"), false);
+    assert.equal(isSafePublicImagePath("blob:https://x"), false);
+  });
+
+  it("rejects https URLs with embedded credentials", () => {
+    assert.equal(
+      isSafePublicImagePath("https://user:pass@cdn.example/a.jpg"),
+      false
+    );
+  });
+});

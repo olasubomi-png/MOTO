@@ -1,13 +1,18 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   verifyAdminCredentials,
   setAdminSessionCookie,
   clearAdminSessionCookie,
   requireAdminSession,
-  getAdminSession,
 } from "@/lib/admin-auth";
+import {
+  checkLoginRateLimit,
+  recordLoginFailure,
+  clearLoginFailures,
+} from "@/lib/admin-rate-limit";
 import {
   createVehicle,
   updateVehicle,
@@ -16,7 +21,10 @@ import {
   InventoryConflictError,
 } from "@/lib/vehicle-repository";
 import type { Vehicle, VehicleAvailability } from "@/lib/vehicle-types";
-import { validateVehicle } from "@/lib/vehicle-validation";
+import {
+  validateVehicle,
+  isSafePublicImagePath,
+} from "@/lib/vehicle-validation";
 
 export type ActionResult = {
   ok: boolean;
@@ -55,6 +63,15 @@ function parseImages(raw: string): string[] {
     .filter(Boolean);
 }
 
+function assertSafeImages(images: string[]): string | null {
+  for (const img of images) {
+    if (!isSafePublicImagePath(img)) {
+      return `Unsafe or invalid image path: ${img.slice(0, 80)}`;
+    }
+  }
+  return null;
+}
+
 const AVAILABILITIES: VehicleAvailability[] = [
   "available",
   "reserved",
@@ -69,57 +86,20 @@ function parseAvailability(raw: string): VehicleAvailability {
   return "available";
 }
 
-/* -------------------- Auth -------------------- */
-
-export async function loginAction(
-  _prev: ActionResult | null,
-  formData: FormData
-): Promise<ActionResult> {
-  const username = formString(formData, "username");
-  const password = formString(formData, "password");
-
-  if (!username || !password) {
-    return { ok: false, error: "Username and password are required." };
-  }
-
+async function clientKey(username?: string): Promise<string> {
   try {
-    if (!verifyAdminCredentials(username, password)) {
-      return { ok: false, error: "Invalid credentials." };
-    }
-    await setAdminSessionCookie(username);
+    const h = await headers();
+    const fwd = h.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const real = h.get("x-real-ip")?.trim();
+    const ip = fwd || real || "unknown";
+    return username ? `${ip}:${username.toLowerCase()}` : ip;
   } catch {
-    return {
-      ok: false,
-      error: "Admin authentication is not configured on this server.",
-    };
+    return username ? `unknown:${username.toLowerCase()}` : "unknown";
   }
-
-  redirect("/admin");
 }
 
-export async function logoutAction(): Promise<void> {
-  await clearAdminSessionCookie();
-  redirect("/admin/login");
-}
-
-/* -------------------- Inventory mutations -------------------- */
-
-async function assertAdmin(): Promise<ActionResult | null> {
-  const session = await getAdminSession();
-  if (!session) {
-    return { ok: false, error: "Unauthorized." };
-  }
-  return null;
-}
-
-export async function createVehicleAction(
-  _prev: ActionResult | null,
-  formData: FormData
-): Promise<ActionResult> {
-  const denied = await assertAdmin();
-  if (denied) return denied;
-
-  const payload = {
+function vehicleFieldsFromForm(formData: FormData) {
+  return {
     make: formString(formData, "make"),
     model: formString(formData, "model"),
     year: formNumber(formData, "year"),
@@ -140,10 +120,67 @@ export async function createVehicleAction(
     featured: formBool(formData, "featured"),
     images: parseImages(formString(formData, "images")),
   };
+}
 
-  const draft = {
+export async function loginAction(
+  _prev: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const username = formString(formData, "username");
+  const password = formString(formData, "password");
+
+  if (!username || !password) {
+    return { ok: false, error: "Username and password are required." };
+  }
+
+  const key = await clientKey(username);
+  const limit = checkLoginRateLimit(key);
+  if (!limit.allowed) {
+    return {
+      ok: false,
+      error: `Too many failed sign-in attempts. Try again in ${limit.retryAfterSec} seconds.`,
+    };
+  }
+
+  try {
+    if (!verifyAdminCredentials(username, password)) {
+      recordLoginFailure(key);
+      return { ok: false, error: "Invalid credentials." };
+    }
+    clearLoginFailures(key);
+    await setAdminSessionCookie(username);
+  } catch {
+    return {
+      ok: false,
+      error: "Admin authentication is not configured on this server.",
+    };
+  }
+
+  redirect("/admin");
+}
+
+export async function logoutAction(): Promise<void> {
+  await clearAdminSessionCookie();
+  redirect("/admin/login");
+}
+
+export async function createVehicleAction(
+  _prev: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  try {
+    await requireAdminSession();
+  } catch {
+    return { ok: false, error: "Unauthorized." };
+  }
+
+  const payload = vehicleFieldsFromForm(formData);
+  const imgErr = assertSafeImages(payload.images);
+  if (imgErr) return { ok: false, error: imgErr };
+
+  const draft: Vehicle = {
     ...payload,
-    id: "pending",
+    id: "pending-create",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -153,7 +190,6 @@ export async function createVehicleAction(
   }
 
   try {
-    await requireAdminSession();
     const created = await createVehicle(payload);
     return { ok: true, id: created.id };
   } catch (err) {
@@ -167,40 +203,37 @@ export async function updateVehicleAction(
   _prev: ActionResult | null,
   formData: FormData
 ): Promise<ActionResult> {
-  const denied = await assertAdmin();
-  if (denied) return denied;
+  try {
+    await requireAdminSession();
+  } catch {
+    return { ok: false, error: "Unauthorized." };
+  }
 
   const id = formString(formData, "id");
   if (!id) return { ok: false, error: "Missing vehicle id." };
 
   const expectedUpdatedAt = formString(formData, "expectedUpdatedAt");
+  const fields = vehicleFieldsFromForm(formData);
+  const imgErr = assertSafeImages(fields.images);
+  if (imgErr) return { ok: false, error: imgErr };
 
-  const data: Partial<Vehicle> = {
-    make: formString(formData, "make"),
-    model: formString(formData, "model"),
-    year: formNumber(formData, "year"),
-    price: formNumber(formData, "price"),
-    currency: formString(formData, "currency") || "USD",
-    mileage: formNumber(formData, "mileage"),
-    fuel: formString(formData, "fuel"),
-    transmission: formString(formData, "transmission"),
-    engine: formString(formData, "engine"),
-    bodyType: formString(formData, "bodyType"),
-    exteriorColor: formString(formData, "exteriorColor"),
-    interiorColor: formString(formData, "interiorColor"),
-    condition: formString(formData, "condition"),
-    description: formString(formData, "description"),
-    features: parseFeatures(formString(formData, "features")),
-    location: formString(formData, "location"),
-    availability: parseAvailability(formString(formData, "availability")),
-    featured: formBool(formData, "featured"),
-    images: parseImages(formString(formData, "images")),
+  const existing = await getVehicleById(id);
+  if (!existing) return { ok: false, error: "Vehicle not found." };
+
+  const candidate: Vehicle = {
+    ...existing,
+    ...fields,
+    id,
+    updatedAt: existing.updatedAt,
   };
+  const issues = validateVehicle(candidate);
+  if (issues.length > 0) {
+    return { ok: false, error: issues.map((i) => i.message).join("; ") };
+  }
 
   try {
-    await requireAdminSession();
-    const updated = await updateVehicle(id, data, {
-      expectedUpdatedAt: expectedUpdatedAt || undefined,
+    const updated = await updateVehicle(id, fields, {
+      expectedUpdatedAt: expectedUpdatedAt || existing.updatedAt,
     });
     if (!updated) return { ok: false, error: "Vehicle not found." };
     return { ok: true, id: updated.id };
@@ -223,15 +256,24 @@ export async function setAvailabilityAction(
   id: string,
   availability: VehicleAvailability
 ): Promise<ActionResult> {
-  const denied = await assertAdmin();
-  if (denied) return denied;
+  try {
+    await requireAdminSession();
+  } catch {
+    return { ok: false, error: "Unauthorized." };
+  }
+  if (!id) return { ok: false, error: "Missing id." };
   if (!AVAILABILITIES.includes(availability)) {
     return { ok: false, error: "Invalid availability." };
   }
+
   try {
-    await requireAdminSession();
     const existing = await getVehicleById(id);
     if (!existing) return { ok: false, error: "Vehicle not found." };
+    const candidate: Vehicle = { ...existing, availability };
+    const issues = validateVehicle(candidate);
+    if (issues.length > 0) {
+      return { ok: false, error: issues.map((i) => i.message).join("; ") };
+    }
     const updated = await updateVehicle(
       id,
       { availability },
@@ -255,10 +297,14 @@ export async function setAvailabilityAction(
 }
 
 export async function toggleFeaturedAction(id: string): Promise<ActionResult> {
-  const denied = await assertAdmin();
-  if (denied) return denied;
   try {
     await requireAdminSession();
+  } catch {
+    return { ok: false, error: "Unauthorized." };
+  }
+  if (!id) return { ok: false, error: "Missing id." };
+
+  try {
     const existing = await getVehicleById(id);
     if (!existing) return { ok: false, error: "Vehicle not found." };
     const updated = await updateVehicle(
@@ -283,16 +329,21 @@ export async function toggleFeaturedAction(id: string): Promise<ActionResult> {
   }
 }
 
-export async function unpublishVehicleAction(id: string): Promise<ActionResult> {
+export async function unpublishVehicleAction(
+  id: string
+): Promise<ActionResult> {
   return setAvailabilityAction(id, "unpublished");
 }
 
 export async function deleteVehicleAction(id: string): Promise<ActionResult> {
-  const denied = await assertAdmin();
-  if (denied) return denied;
-  if (!id) return { ok: false, error: "Missing id." };
   try {
     await requireAdminSession();
+  } catch {
+    return { ok: false, error: "Unauthorized." };
+  }
+  if (!id) return { ok: false, error: "Missing id." };
+
+  try {
     const ok = await deleteVehicle(id);
     if (!ok) return { ok: false, error: "Vehicle not found." };
     return { ok: true, id };
