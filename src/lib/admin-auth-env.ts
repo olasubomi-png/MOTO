@@ -6,6 +6,8 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 
 let envBootstrapAttempted = false;
+/** When true, skip filesystem dotenv fallback (test isolation only). */
+let fileFallbackDisabledForTests = false;
 
 export function ensureAdminEnvLoaded(): void {
   if (envBootstrapAttempted) return;
@@ -15,6 +17,8 @@ export function ensureAdminEnvLoaded(): void {
   const hasPass = Boolean(process.env.ADMIN_PASSWORD?.trim());
   const hasSecret = Boolean(process.env.ADMIN_SESSION_SECRET?.trim());
   if (hasUser && hasPass && hasSecret) return;
+
+  if (fileFallbackDisabledForTests) return;
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -30,8 +34,18 @@ export function ensureAdminEnvLoaded(): void {
   }
 }
 
-/** @internal tests */
+/** @internal tests — reset bootstrap flag; re-enables file fallback */
 export function __resetAdminEnvBootstrapForTests(): void {
+  envBootstrapAttempted = false;
+  fileFallbackDisabledForTests = false;
+}
+
+/**
+ * @internal tests — mark env bootstrap complete without reading .env files,
+ * so missing process.env values stay missing for the assertion.
+ */
+export function __disableAdminEnvFileFallbackForTests(): void {
+  fileFallbackDisabledForTests = true;
   envBootstrapAttempted = false;
 }
 

@@ -4,10 +4,15 @@ import {
   readAdminEnv,
   getAdminAuthEnvStatus,
   __resetAdminEnvBootstrapForTests,
+  __disableAdminEnvFileFallbackForTests,
 } from "../admin-auth-env.ts";
 
 describe("admin-auth-env", () => {
-  const keys = ["ADMIN_USERNAME", "ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"] as const;
+  const keys = [
+    "ADMIN_USERNAME",
+    "ADMIN_PASSWORD",
+    "ADMIN_SESSION_SECRET",
+  ] as const;
   const saved: Record<string, string | undefined> = {};
 
   beforeEach(() => {
@@ -50,6 +55,8 @@ describe("admin-auth-env", () => {
   });
 
   it("detects missing vars", () => {
+    // Isolate from real .env.local on the host without weakening production fallback
+    __disableAdminEnvFileFallbackForTests();
     const status = getAdminAuthEnvStatus();
     assert.equal(status.hasUsername, false);
     assert.equal(status.hasPassword, false);
