@@ -179,13 +179,18 @@ export default async function VehicleDetailPage({ params }: PageProps) {
         <div className="lg:col-span-2 min-w-0">
           <div className="sticky top-24 space-y-6">
             {/* Availability */}
-            <div>
-              {isAvailable && (
+            <div className="flex flex-wrap gap-2">
+              {isDemo && (
+                <span className="inline-flex items-center rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gold">
+                  Demo Vehicle
+                </span>
+              )}
+              {!isDemo && isAvailable && (
                 <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
                   Available
                 </span>
               )}
-              {isReserved && (
+              {!isDemo && isReserved && (
                 <span className="inline-flex items-center rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-400">
                   Reserved
                 </span>

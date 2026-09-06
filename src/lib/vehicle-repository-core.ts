@@ -125,6 +125,8 @@ export async function searchVehicles(
     conditions.push(lte(vehicles.price, filters.priceMax));
   if (filters.mileageMax != null)
     conditions.push(lte(vehicles.mileage, filters.mileageMax));
+  if (filters.featured === true)
+    conditions.push(eq(vehicles.featured, true));
 
   const whereExpr =
     conditions.length === 0
@@ -143,6 +145,7 @@ export async function searchVehicles(
     model: filters.model,
     sort: filters.sort,
     availability: filters.availability,
+    featured: filters.featured,
   });
 }
 

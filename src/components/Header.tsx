@@ -78,6 +78,8 @@ export function Header() {
           type="button"
           className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-muted"
           onClick={() => setMobileOpen(!mobileOpen)}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-nav"
           aria-label="Toggle menu"
         >
           {mobileOpen ? (
@@ -94,7 +96,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background">
+        <div id="mobile-nav" className="md:hidden border-t border-border bg-background">
           <nav className="flex flex-col px-4 py-4 gap-1">
             <Link
               href="/"

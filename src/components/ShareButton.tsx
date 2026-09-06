@@ -51,7 +51,7 @@ export function ShareButton({ title, text, path }: ShareButtonProps) {
     <button
       type="button"
       onClick={handleShare}
-      className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       aria-label="Share this vehicle"
     >
       {copied ? (

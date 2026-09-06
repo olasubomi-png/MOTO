@@ -228,3 +228,16 @@ describe("image safety rejects dangerous protocols", () => {
     );
   });
 });
+
+
+describe("featured filter", () => {
+  it("returns only featured vehicles when requested", () => {
+    const source = [
+      sample({ id: "a", featured: true }),
+      sample({ id: "b", featured: false }),
+    ];
+    const out = filterAndSortVehicles(source, { featured: true });
+    assert.equal(out.length, 1);
+    assert.equal(out[0].id, "a");
+  });
+});

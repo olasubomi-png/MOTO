@@ -15,6 +15,7 @@ export type VehicleFilters = {
   bodyType?: string;
   condition?: string;
   availability?: string;
+  featured?: boolean;
   sort?: "newest" | "price-asc" | "price-desc" | "mileage";
 };
 
@@ -51,6 +52,8 @@ export function filterAndSortVehicles(
   if (filters.fuel) results = results.filter((v) => v.fuel === filters.fuel);
   if (filters.transmission)
     results = results.filter((v) => v.transmission === filters.transmission);
+  if (filters.featured === true)
+    results = results.filter((v) => v.featured === true);
   if (filters.bodyType)
     results = results.filter((v) => v.bodyType === filters.bodyType);
   if (filters.condition)
