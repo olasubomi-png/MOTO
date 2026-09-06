@@ -1,10 +1,13 @@
 /**
  * Pure helpers for reading admin env vars (no server-only).
  * Used by admin-auth.ts and unit tests.
+ *
+ * Filesystem note: dotenv is loaded with static relative paths only
+ * (".env.local", ".env"). We intentionally avoid existsSync() and
+ * path.join(process.cwd(), …) so Turbopack does not treat this as
+ * dynamic project-wide filesystem access during the production build.
+ * dotenv.config() is a no-op when the file is absent.
  */
-import { existsSync } from "node:fs";
-import path from "node:path";
-
 let envBootstrapAttempted = false;
 /** When true, skip filesystem dotenv fallback (test isolation only). */
 let fileFallbackDisabledForTests = false;
@@ -25,10 +28,10 @@ export function ensureAdminEnvLoaded(): void {
     const dotenv = require("dotenv") as {
       config: (opts?: { path?: string }) => unknown;
     };
-    const cwd = process.cwd();
-    for (const file of [path.join(cwd, ".env.local"), path.join(cwd, ".env")]) {
-      if (existsSync(file)) dotenv.config({ path: file });
-    }
+    // Static relative paths only — same resolution as path.join(cwd, name)
+    // when the process cwd is the project root (Next.js / PM2 standard).
+    dotenv.config({ path: ".env.local" });
+    dotenv.config({ path: ".env" });
   } catch {
     /* host-injected env only */
   }
