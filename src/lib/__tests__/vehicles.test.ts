@@ -72,7 +72,7 @@ describe("validateVehicle", () => {
 
   it("rejects unsafe image paths", () => {
     assert.ok(
-      validateVehicle(sample({ id: "1", images: ["https://evil.com/x.jpg"] })).some(
+      validateVehicle(sample({ id: "1", images: ["http://evil.com/x.jpg"] })).some(
         (i) => i.field === "images"
       )
     );
@@ -83,8 +83,10 @@ describe("isSafePublicImagePath", () => {
   it("allows vehicles namespace", () => {
     assert.equal(isSafePublicImagePath("/vehicles/a.jpg"), true);
   });
-  it("blocks remote URLs", () => {
-    assert.equal(isSafePublicImagePath("https://cdn.example/x.jpg"), false);
+  it("allows https image URLs and blocks unsafe schemes", () => {
+    assert.equal(isSafePublicImagePath("https://cdn.example/x.jpg"), true);
+    assert.equal(isSafePublicImagePath("http://cdn.example/x.jpg"), false);
+    assert.equal(isSafePublicImagePath("javascript:alert(1)"), false);
   });
 });
 
@@ -141,7 +143,11 @@ describe("pickRelatedVehicles", () => {
 describe("getVehicleImage", () => {
   it("returns placeholder for empty or unsafe", () => {
     assert.equal(getVehicleImage(""), PLACEHOLDER_IMAGE);
-    assert.equal(getVehicleImage("https://x.com/a.jpg"), PLACEHOLDER_IMAGE);
+    assert.equal(getVehicleImage("http://x.com/a.jpg"), PLACEHOLDER_IMAGE);
+    assert.equal(getVehicleImage("javascript:alert(1)"), PLACEHOLDER_IMAGE);
+  });
+  it("passes through safe https URLs", () => {
+    assert.equal(getVehicleImage("https://cdn.example/a.jpg"), "https://cdn.example/a.jpg");
   });
   it("returns safe local path", () => {
     assert.equal(getVehicleImage("/vehicles/a.jpg"), "/vehicles/a.jpg");

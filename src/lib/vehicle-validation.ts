@@ -34,9 +34,19 @@ export function isSafePublicImagePath(value: unknown): boolean {
   if (s.includes("..")) return false;
   if (s.includes("\0")) return false;
   const lower = s.toLowerCase();
+  // Allow absolute https image URLs (admin-managed remote assets)
+  if (lower.startsWith("https://")) {
+    try {
+      const u = new URL(s);
+      if (u.protocol !== "https:") return false;
+      if (u.username || u.password) return false;
+      return true;
+    } catch {
+      return false;
+    }
+  }
   if (
     lower.startsWith("http:") ||
-    lower.startsWith("https:") ||
     lower.startsWith("javascript:") ||
     lower.startsWith("data:") ||
     lower.startsWith("file:") ||
