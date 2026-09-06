@@ -35,6 +35,40 @@ export type ActionResult = {
   id?: string;
 };
 
+/** Never leak connection strings / secrets into the browser. */
+function publicActionError(err: unknown, fallback: string): string {
+  if (!err || typeof err !== "object") return fallback;
+  const msg = "message" in err && typeof (err as Error).message === "string"
+    ? (err as Error).message
+    : "";
+  const lower = msg.toLowerCase();
+  if (
+    !msg ||
+    lower.includes("password") ||
+    lower.includes("secret") ||
+    lower.includes("database") ||
+    lower.includes("postgres") ||
+    lower.includes("econn") ||
+    lower.includes("neon")
+  ) {
+    return fallback;
+  }
+  // Known safe business messages (validation, not found, conflict handled separately)
+  if (
+    lower.includes("not found") ||
+    lower.includes("invalid") ||
+    lower.includes("required") ||
+    lower.includes("must be") ||
+    lower.includes("unsafe") ||
+    lower.includes("conflict") ||
+    lower.includes("modified by another")
+  ) {
+    return msg.length > 200 ? msg.slice(0, 197) + "…" : msg;
+  }
+  return fallback;
+}
+
+
 function formString(formData: FormData, key: string): string {
   const v = formData.get(key);
   return typeof v === "string" ? v.trim() : "";
@@ -237,9 +271,10 @@ export async function createVehicleAction(
     const created = await createVehicle(payload);
     return { ok: true, id: created.id };
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to create vehicle.";
-    return { ok: false, error: message };
+    return {
+      ok: false,
+      error: publicActionError(err, "Failed to create vehicle."),
+    };
   }
 }
 
@@ -290,9 +325,10 @@ export async function updateVehicleAction(
           "This vehicle was modified by another session. Reload and try again.",
       };
     }
-    const message =
-      err instanceof Error ? err.message : "Failed to update vehicle.";
-    return { ok: false, error: message };
+    return {
+      ok: false,
+      error: publicActionError(err, "Failed to update vehicle."),
+    };
   }
 }
 
@@ -335,7 +371,7 @@ export async function setAvailabilityAction(
     }
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Update failed.",
+      error: publicActionError(err, "Update failed."),
     };
   }
 }
@@ -368,7 +404,7 @@ export async function toggleFeaturedAction(id: string): Promise<ActionResult> {
     }
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Update failed.",
+      error: publicActionError(err, "Update failed."),
     };
   }
 }
@@ -394,7 +430,7 @@ export async function deleteVehicleAction(id: string): Promise<ActionResult> {
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Delete failed.",
+      error: publicActionError(err, "Delete failed."),
     };
   }
 }
