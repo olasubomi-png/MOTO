@@ -7,6 +7,8 @@ import {
   setAdminSessionCookie,
   clearAdminSessionCookie,
   requireAdminSession,
+  AdminAuthConfigError,
+  getAdminAuthEnvStatus,
 } from "@/lib/admin-auth";
 import {
   checkLoginRateLimit,
@@ -142,17 +144,59 @@ export async function loginAction(
     };
   }
 
+  // 1) Credential verification (config vs invalid password are distinct)
+  let credentialsOk = false;
   try {
-    if (!verifyAdminCredentials(username, password)) {
-      recordLoginFailure(key);
-      return { ok: false, error: "Invalid credentials." };
+    credentialsOk = verifyAdminCredentials(username, password);
+  } catch (err) {
+    if (err instanceof AdminAuthConfigError) {
+      const status = getAdminAuthEnvStatus();
+      // Safe operator hint — never includes secret values
+      const missing: string[] = [];
+      if (!status.hasUsername) missing.push("ADMIN_USERNAME");
+      if (!status.hasPassword) missing.push("ADMIN_PASSWORD");
+      return {
+        ok: false,
+        error: `Admin credentials are not configured on this server (missing ${missing.join(", ") || "credentials"}).`,
+      };
     }
+    return { ok: false, error: "Unable to verify credentials right now." };
+  }
+
+  if (!credentialsOk) {
+    recordLoginFailure(key);
+    return { ok: false, error: "Invalid credentials." };
+  }
+
+  // 2) Session token + HTTP-only cookie
+  try {
     clearLoginFailures(key);
     await setAdminSessionCookie(username);
-  } catch {
+  } catch (err) {
+    if (err instanceof AdminAuthConfigError) {
+      const status = getAdminAuthEnvStatus();
+      if (!status.hasSessionSecret) {
+        return {
+          ok: false,
+          error:
+            "Admin session secret is not configured on this server (ADMIN_SESSION_SECRET).",
+        };
+      }
+      if (status.sessionSecretLength < 16) {
+        return {
+          ok: false,
+          error:
+            "Admin session secret is too short (ADMIN_SESSION_SECRET must be at least 16 characters).",
+        };
+      }
+      return {
+        ok: false,
+        error: "Admin session configuration is invalid on this server.",
+      };
+    }
     return {
       ok: false,
-      error: "Admin authentication is not configured on this server.",
+      error: "Could not create the admin session cookie. Try again.",
     };
   }
 
